@@ -1,18 +1,21 @@
 {
   "id": "com.storymuse.marketplace",
-  "name": "StoryMuse Plugin Marketplace",
+  "name": "storymuse-marketplace",
   "description": "StoryMuse 官方插件市场",
   "version": "1.0.0",
-  "author": "StoryMuse Team",
+  "owner": {
+    "name": "StoryMuse Team"
+  },
   "plugins": [
     {
       "id": "com.storymuse.plugin",
       "name": "StoryMuse",
       "description": "专属网文创作者的AI缪斯，引导你将创意成长为百万字完本小说。",
       "version": "1.0.0",
-      "author": "StoryMuse Team",
-      "repository": "https://github.com/cvanly2011/StoryMuse.git",
-      "path": ".",
+      "author": {
+        "name": "StoryMuse Team"
+      },
+      "source": ".",
       "minAppVersion": "1.0.0"
     }
   ]
