@@ -1,0 +1,24 @@
+{
+  "id": "com.storymuse.plugin",
+  "name": "StoryMuse",
+  "version": "1.0.0",
+  "description": "专属网文创作者的AI缪斯，引导你将创意成长为百万字完本小说。",
+  "author": "StoryMuse Team",
+  "icon": "icon.svg",
+  "minAppVersion": "1.0.0",
+  "permissions": [
+    "fileSystem:readWrite",
+    "childProcess:execute",
+    "network:local"
+  ],
+  "mcpServers": [
+    {
+      "id": "storymuse-mcp",
+      "name": "StoryMuse MCP Server",
+      "command": "${pluginPath}/mcp-server/start.sh",
+      "cwd": "${pluginPath}/mcp-server",
+      "port": 19876,
+      "readyTimeout": 30000
+    }
+  ]
+}

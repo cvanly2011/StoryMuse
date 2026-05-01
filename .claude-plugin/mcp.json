@@ -1,0 +1,311 @@
+{
+  "id": "storymuse-mcp",
+  "name": "StoryMuse MCP Server",
+  "version": "1.0.0",
+  "description": "StoryMuse 核心服务",
+  "tools": [
+    {
+      "name": "createNovel",
+      "description": "创建新小说",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string", "description": "小说名称" },
+          "description": { "type": "string", "description": "一句话简介" },
+          "genre": { "type": "string", "description": "题材类型" },
+          "targetPlatform": { "type": "string", "description": "目标发布平台" },
+          "wordCountTarget": { "type": "number", "description": "目标总字数" }
+        },
+        "required": ["name", "description"]
+      }
+    },
+    {
+      "name": "getNovelInfo",
+      "description": "获取当前小说基础信息",
+      "parameters": {}
+    },
+    {
+      "name": "saveStorySeed",
+      "description": "保存故事种子版本",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "coreIdea": { "type": "string", "description": "核心创意" },
+          "worldSetting": { "type": "string", "description": "世界观设定" },
+          "coreCharacters": { "type": "string", "description": "核心人物剪影" },
+          "sellingPoints": { "type": "string", "description": "核心卖点" },
+          "setAsActive": { "type": "boolean", "description": "是否设为当前激活版本" }
+        },
+        "required": ["coreIdea"]
+      }
+    },
+    {
+      "name": "getActiveSeed",
+      "description": "获取当前激活的故事种子",
+      "parameters": {}
+    },
+    {
+      "name": "createOutlineNode",
+      "description": "创建大纲节点",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "parentId": { "type": "number", "description": "父节点ID" },
+          "level": { "type": "number", "description": "层级1-4" },
+          "order": { "type": "number", "description": "同级排序" },
+          "title": { "type": "string", "description": "节点标题" },
+          "description": { "type": "string", "description": "节点描述" },
+          "characterGoals": { "type": "string", "description": "人物目标" },
+          "conflictPoints": { "type": "string", "description": "冲突点" },
+          "turningPoints": { "type": "string", "description": "转折点" },
+          "foreshadowingHints": { "type": "string", "description": "伏笔提示" }
+        },
+        "required": ["level", "order", "title"]
+      }
+    },
+    {
+      "name": "updateOutlineNode",
+      "description": "更新大纲节点",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "nodeId": { "type": "number", "description": "节点ID" },
+          "updates": { "type": "object", "description": "要更新的字段" }
+        },
+        "required": ["nodeId", "updates"]
+      }
+    },
+    {
+      "name": "getOutlineTree",
+      "description": "获取完整大纲树",
+      "parameters": {
+        "level": { "type": "number", "description": "返回指定层级以上的节点" }
+      }
+    },
+    {
+      "name": "createCharacter",
+      "description": "创建人物",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string", "description": "人物姓名" },
+          "alias": { "type": "string", "description": "别名" },
+          "role": { "type": "string", "enum": ["protagonist", "antagonist", "supporting", "guest", "npc"], "description": "角色类型" },
+          "appearance": { "type": "string", "description": "外貌" },
+          "personality": { "type": "string", "description": "性格" },
+          "innerConflict": { "type": "string", "description": "内在矛盾" },
+          "coreDesire": { "type": "string", "description": "核心欲望" },
+          "coreFear": { "type": "string", "description": "核心恐惧" },
+          "characterArc": { "type": "string", "description": "人物弧光" },
+          "backstory": { "type": "string", "description": "背景故事" }
+        },
+        "required": ["name", "role"]
+      }
+    },
+    {
+      "name": "updateCharacter",
+      "description": "更新人物信息",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "characterId": { "type": "number", "description": "人物ID" },
+          "updates": { "type": "object", "description": "要更新的字段" }
+        },
+        "required": ["characterId", "updates"]
+      }
+    },
+    {
+      "name": "listCharacters",
+      "description": "获取人物列表",
+      "parameters": {
+        "role": { "type": "string", "description": "按角色类型过滤" }
+      }
+    },
+    {
+      "name": "addCharacterRelation",
+      "description": "添加人物关系",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "relationType": { "type": "string", "enum": ["binary", "multiple"], "description": "关系类型" },
+          "characterIds": { "type": "array", "items": { "type": "number" }, "description": "关联人物ID列表" },
+          "relationName": { "type": "string", "description": "关系名称" },
+          "description": { "type": "string", "description": "关系描述" },
+          "closeness": { "type": "number", "description": "亲密程度1-10" },
+          "secrecyLevel": { "type": "number", "description": "秘密程度1-10" },
+          "conflictLevel": { "type": "number", "description": "冲突等级1-10" },
+          "plotImportance": { "type": "number", "description": "重要程度1-10" }
+        },
+        "required": ["relationType", "characterIds", "relationName"]
+      }
+    },
+    {
+      "name": "getCharacterRelationGraph",
+      "description": "获取人物关系图谱",
+      "parameters": {
+        "upToChapterId": { "type": "number", "description": "截至到某章节的关系状态" }
+      }
+    },
+    {
+      "name": "saveChapterVersion",
+      "description": "保存章节版本",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "outlineNodeId": { "type": "number", "description": "大纲节点ID" },
+          "content": { "type": "string", "description": "章节正文" },
+          "summary": { "type": "string", "description": "章节摘要" },
+          "keyEvents": { "type": "array", "items": { "type": "string" }, "description": "关键事件列表" },
+          "characterAppearances": { "type": "array", "items": { "type": "object" }, "description": "出场人物状态变化" },
+          "foreshadowingIds": { "type": "array", "items": { "type": "number" }, "description": "本章埋设的伏笔ID" },
+          "createdBy": { "type": "string", "description": "创建者" }
+        },
+        "required": ["outlineNodeId", "content", "summary", "keyEvents", "characterAppearances"]
+      }
+    },
+    {
+      "name": "getChapterContent",
+      "description": "获取章节内容",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "outlineNodeId": { "type": "number", "description": "大纲节点ID" },
+          "version": { "type": "number", "description": "版本号，默认当前版本" },
+          "includeFullContent": { "type": "boolean", "description": "是否包含完整正文，默认false只返回摘要" }
+        },
+        "required": ["outlineNodeId"]
+      }
+    },
+    {
+      "name": "rollbackChapter",
+      "description": "回滚章节到指定版本",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "outlineNodeId": { "type": "number", "description": "大纲节点ID" },
+          "targetVersion": { "type": "number", "description": "目标版本号" }
+        },
+        "required": ["outlineNodeId", "targetVersion"]
+      }
+    },
+    {
+      "name": "createForeshadowing",
+      "description": "创建伏笔",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "setupChapterId": { "type": "number", "description": "埋设章节ID" },
+          "description": { "type": "string", "description": "伏笔内容" },
+          "payoffChapterId": { "type": "number", "description": "计划回收章节ID" },
+          "hintLevel": { "type": "number", "description": "暗示明显程度1-5" },
+          "importance": { "type": "number", "description": "重要程度1-10" }
+        },
+        "required": ["setupChapterId", "description"]
+      }
+    },
+    {
+      "name": "markForeshadowingPaidOff",
+      "description": "标记伏笔已回收",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "foreshadowingId": { "type": "number", "description": "伏笔ID" },
+          "payoffChapterId": { "type": "number", "description": "回收章节ID" },
+          "payoffDescription": { "type": "string", "description": "回收描述" }
+        },
+        "required": ["foreshadowingId", "payoffChapterId", "payoffDescription"]
+      }
+    },
+    {
+      "name": "listUnpaidForeshadowings",
+      "description": "获取未回收伏笔列表",
+      "parameters": {
+        "upToChapterId": { "type": "number", "description": "截至到某章节未回收的" }
+      }
+    },
+    {
+      "name": "generateContextSnapshot",
+      "description": "生成章节上下文快照",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "chapterId": { "type": "number", "description": "章节ID" },
+          "previousChaptersCount": { "type": "number", "description": "包含前N章信息，默认3" }
+        },
+        "required": ["chapterId"]
+      }
+    },
+    {
+      "name": "getCurrentContextSnapshot",
+      "description": "获取当前章节的上下文快照",
+      "parameters": {
+        "chapterId": { "type": "number", "description": "章节ID" }
+      }
+    },
+    {
+      "name": "checkCharacterConsistency",
+      "description": "检查人物一致性",
+      "parameters": {
+        "chapterId": { "type": "number", "description": "指定章节，默认全部" }
+      }
+    },
+    {
+      "name": "checkForeshadowingRecovery",
+      "description": "检查伏笔回收情况",
+      "parameters": {}
+    },
+    {
+      "name": "checkPlotLogic",
+      "description": "检查情节逻辑合理性",
+      "parameters": {
+        "startChapterId": { "type": "number", "description": "开始章节ID" },
+        "endChapterId": { "type": "number", "description": "结束章节ID" }
+      }
+    },
+    {
+      "name": "checkPlatformCompliance",
+      "description": "检查平台合规性",
+      "parameters": {
+        "chapterId": { "type": "number", "description": "指定章节，默认全部" }
+      }
+    },
+    {
+      "name": "getNovelOverview",
+      "description": "获取小说全局概览",
+      "parameters": {}
+    },
+    {
+      "name": "getStoryTimeline",
+      "description": "获取故事时间线",
+      "parameters": {}
+    },
+    {
+      "name": "loadFileContent",
+      "description": "加载文件内容到数据库",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "fileType": { "type": "string", "enum": ["seed", "outline", "character", "chapter"], "description": "文件类型" },
+          "filePath": { "type": "string", "description": "文件路径" },
+          "chapterId": { "type": "number", "description": "章节ID，仅当fileType为chapter时需要" }
+        },
+        "required": ["fileType", "filePath"]
+      }
+    },
+    {
+      "name": "detectModifiedFiles",
+      "description": "检测所有修改过的文件",
+      "parameters": {}
+    },
+    {
+      "name": "rebuildDatabase",
+      "description": "从工作区文件重建数据库",
+      "parameters": {}
+    },
+    {
+      "name": "getGitBranchInfo",
+      "description": "获取当前Git分支信息",
+      "parameters": {}
+    }
+  ]
+}
