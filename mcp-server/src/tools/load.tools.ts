@@ -1,8 +1,8 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import fs from 'fs';
 import path from 'path';
-import { rebuildDatabase } from '../database';
-import { detectModifiedFiles } from '../services/file.service';
+import { rebuildDatabase as rebuildDb } from '../database';
+import { detectModifiedFiles as detectModified } from '../services/file.service';
 
 // 加载文件内容到数据库
 export async function loadFileContent(request: FastifyRequest<{
@@ -44,7 +44,7 @@ export async function loadFileContent(request: FastifyRequest<{
 // 检测修改的文件
 export async function detectModifiedFiles(request: FastifyRequest, reply: FastifyReply) {
   try {
-    const modifiedFiles = await detectModifiedFiles();
+    const modifiedFiles = await detectModified();
     return reply.send({
       success: true,
       data: {
@@ -62,7 +62,7 @@ export async function detectModifiedFiles(request: FastifyRequest, reply: Fastif
 // 重建数据库
 export async function rebuildDatabase(request: FastifyRequest, reply: FastifyReply) {
   try {
-    await rebuildDatabase();
+    await rebuildDb();
     return reply.send({
       success: true,
       message: '数据库已成功重建，所有内容已从工作区文件恢复'

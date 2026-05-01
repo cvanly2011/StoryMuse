@@ -1,8 +1,19 @@
-# StoryMuse 自动生成的忽略文件
-.claude/                  # 插件本地数据目录（数据库、缓存）
-.story-muse.config.json   # 本地小说绑定配置
-node_modules/             # Node.js依赖
-dist/                     # 编译后文件
-*.log                     # 日志文件
-.DS_Store                 # Mac系统文件
-*.zip                     # 打包文件
+# StoryMuse auto-generated ignore file
+.claude/
+**/.claude/
+mcp-server/.claude/
+mcp-server/.claude/**
+.story-muse.config.json
+node_modules/
+mcp-server/node_modules/
+mcp-server/dist/
+dist/
+*.log
+.DS_Store
+*.zip
+*.sqlite
+*.sqlite-*
+test-backups/
+coverage/
+*.test.ts.snap
+*.bak

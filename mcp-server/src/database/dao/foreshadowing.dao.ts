@@ -1,92 +1,106 @@
-import { getDb } from '../index';
+import { BaseDAO } from './base.dao';
 
 export interface Foreshadowing {
   id: number;
-  novelId: number;
-  setupChapterId: number;
-  payoffChapterId?: number;
+  novel_id: number;
+  setup_chapter_id: number;
+  payoff_chapter_id?: number;
   description: string;
-  hintLevel: number;
-  importance: number;
+  hint_level: number; // 1-5
+  importance: number; // 1-10
   status: 'setup' | 'paid_off' | 'abandoned';
-  payoffDescription?: string;
-  createdAt: string;
-  updatedAt: string;
+  payoff_description?: string;
+  created_at: string;
+  updated_at: string;
 }
 
-// 创建伏笔
-export function createForeshadowing(params: Omit<Foreshadowing, 'id' | 'createdAt' | 'updatedAt' | 'status'>) {
-  const db = getDb();
-  const stmt = db.prepare(`
-    INSERT INTO foreshadowings (novel_id, setup_chapter_id, payoff_chapter_id, description, hint_level, importance)
-    VALUES (@novelId, @setupChapterId, @payoffChapterId, @description, @hintLevel, @importance)
-    RETURNING *
-  `);
+class ForeshadowingDAO extends BaseDAO<Foreshadowing> {
+  protected tableName = 'foreshadowings';
+  protected primaryKey = 'id';
 
-  const result = stmt.get({ ...params, status: 'setup' }) as Foreshadowing;
-  return result;
-}
-
-// 更新伏笔
-export function updateForeshadowing(id: number, updates: Partial<Foreshadowing>) {
-  const db = getDb();
-  const fields = Object.keys(updates)
-    .map(key => {
-      const dbKey = key.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
-      return `${dbKey} = @${key}`;
-    })
-    .join(', ');
-
-  const stmt = db.prepare(`
-    UPDATE foreshadowings
-    SET ${fields}, updated_at = CURRENT_TIMESTAMP
-    WHERE id = @id
-    RETURNING *
-  `);
-
-  return stmt.get({ ...updates, id }) as Foreshadowing;
-}
-
-// 标记伏笔已回收
-export function markForeshadowingPaidOff(id: number, payoffChapterId: number, payoffDescription: string) {
-  return updateForeshadowing(id, {
-    status: 'paid_off',
-    payoffChapterId,
-    payoffDescription
-  });
-}
-
-// 获取未回收的伏笔
-export function listUnpaidForeshadowings(novelId: number, upToChapterId?: number) {
-  const db = getDb();
-  let sql = 'SELECT * FROM foreshadowings WHERE novel_id = ? AND status = "setup" AND importance >= 5';
-  const params: any[] = [novelId];
-
-  if (upToChapterId !== undefined) {
-    sql += ' AND setup_chapter_id <= ?';
-    params.push(upToChapterId);
+  // 创建伏笔
+  public insert(params: Omit<Foreshadowing, 'id' | 'created_at' | 'updated_at' | 'status'>): number {
+    return super.insert({
+      ...params,
+      status: 'setup',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    } as Partial<Foreshadowing>);
   }
 
-  sql += ' ORDER BY importance DESC, setup_chapter_id ASC';
+  // 获取小说的所有伏笔
+  public findAllByNovelId(novelId: number, status?: string): Foreshadowing[] {
+    let sql = `SELECT * FROM ${this.tableName} WHERE novel_id = ?`;
+    const params: any[] = [novelId];
 
-  const stmt = db.prepare(sql);
-  return stmt.all(...params) as Foreshadowing[];
+    if (status) {
+      sql += ` AND status = ?`;
+      params.push(status);
+    }
+
+    sql += ` ORDER BY importance DESC, setup_chapter_id ASC`;
+    return this.getDb().prepare(sql).all(...params) as Foreshadowing[];
+  }
+
+  // 获取指定章节埋设的伏笔
+  public findBySetupChapterId(chapterId: number): Foreshadowing[] {
+    const sql = `SELECT * FROM ${this.tableName} WHERE setup_chapter_id = ? ORDER BY importance DESC`;
+    return this.getDb().prepare(sql).all(chapterId) as Foreshadowing[];
+  }
+
+  // 获取指定章节回收的伏笔
+  public findByPayoffChapterId(chapterId: number): Foreshadowing[] {
+    const sql = `SELECT * FROM ${this.tableName} WHERE payoff_chapter_id = ? ORDER BY importance DESC`;
+    return this.getDb().prepare(sql).all(chapterId) as Foreshadowing[];
+  }
+
+  // 获取所有未回收的伏笔
+  public findUnpaidByNovelId(novelId: number, upToChapterId?: number, minImportance: number = 5): Foreshadowing[] {
+    let sql = `SELECT * FROM ${this.tableName} WHERE novel_id = ? AND status = 'setup' AND importance >= ?`;
+    const params: any[] = [novelId, minImportance];
+
+    if (upToChapterId !== undefined) {
+      sql += ` AND setup_chapter_id <= ?`;
+      params.push(upToChapterId);
+    }
+
+    sql += ` ORDER BY importance DESC, setup_chapter_id ASC`;
+    return this.getDb().prepare(sql).all(...params) as Foreshadowing[];
+  }
+
+  // 获取逾期未回收的伏笔（超过计划回收章节）
+  public findOverdueByNovelId(novelId: number, currentChapterId: number): Foreshadowing[] {
+    const sql = `
+      SELECT * FROM ${this.tableName}
+      WHERE novel_id = ? AND status = 'setup' AND payoff_chapter_id IS NOT NULL AND payoff_chapter_id < ?
+      ORDER BY importance DESC
+    `;
+    return this.getDb().prepare(sql).all(novelId, currentChapterId) as Foreshadowing[];
+  }
+
+  // 标记伏笔已回收
+  public markAsPaid(id: number, payoffChapterId: number, payoffDescription?: string): number {
+    return this.update(id, {
+      status: 'paid_off',
+      payoff_chapter_id: payoffChapterId,
+      payoff_description: payoffDescription,
+      updated_at: new Date().toISOString()
+    } as Partial<Foreshadowing>);
+  }
+
+  // 标记伏笔已废弃
+  public markAsAbandoned(id: number): number {
+    return this.update(id, {
+      status: 'abandoned',
+      updated_at: new Date().toISOString()
+    } as Partial<Foreshadowing>);
+  }
+
+  // 更新伏笔的更新时间
+  public updateUpdatedAt(id: number): number {
+    return this.update(id, { updated_at: new Date().toISOString() } as Partial<Foreshadowing>);
+  }
 }
 
-// 获取所有伏笔
-export function listAllForeshadowings(novelId: number) {
-  const db = getDb();
-  const stmt = db.prepare('SELECT * FROM foreshadowings WHERE novel_id = ? ORDER BY setup_chapter_id, importance DESC');
-  return stmt.all(novelId) as Foreshadowing[];
-}
+export const foreshadowingDAO = new ForeshadowingDAO();
 
-// 获取逾期未回收的伏笔（超过计划回收章节）
-export function listOverdueForeshadowings(novelId: number, currentChapterId: number) {
-  const db = getDb();
-  const stmt = db.prepare(`
-    SELECT * FROM foreshadowings
-    WHERE novel_id = ? AND status = "setup" AND payoff_chapter_id IS NOT NULL AND payoff_chapter_id < ?
-    ORDER BY importance DESC
-  `);
-  return stmt.all(novelId, currentChapterId) as Foreshadowing[];
-}

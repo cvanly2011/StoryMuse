@@ -2,7 +2,17 @@ import Database from 'better-sqlite3';
 import fs from 'fs';
 import path from 'path';
 import { DB_PATH, DB_CONFIG, BACKUP_DIR, BACKUP_CONFIG } from '../config/db.config';
-import { INIT_SQL } from './schema';
+
+// 加载迁移文件，优先使用编译后的dist目录，回退到src目录
+let migrationDir = path.join(process.cwd(), 'dist', 'database', 'migrations');
+if (!fs.existsSync(migrationDir)) {
+  migrationDir = path.join(process.cwd(), 'src', 'database', 'migrations');
+}
+console.log(`使用迁移目录: ${migrationDir}`);
+console.log(`迁移目录存在: ${fs.existsSync(migrationDir)}`);
+if (fs.existsSync(migrationDir)) {
+  console.log(`迁移文件: ${fs.readdirSync(migrationDir).join(', ')}`);
+}
 
 let db: Database.Database | null = null;
 
@@ -13,6 +23,54 @@ function ensureDirExists(dirPath: string) {
   }
 }
 
+// 运行所有未应用的迁移
+function runMigrations() {
+  if (!db) {
+    throw new Error('数据库未初始化');
+  }
+  // 初始化迁移表
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS migrations (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      version INTEGER NOT NULL UNIQUE,
+      name TEXT NOT NULL,
+      applied_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
+  // 获取已应用的迁移版本
+  const appliedVersions = new Set(
+    db
+      .prepare('SELECT version FROM migrations ORDER BY version')
+      .all()
+      .map((row: any) => row.version)
+  );
+
+  // 获取所有迁移文件，匹配.ts或.js文件
+  const migrationFiles = fs
+    .readdirSync(migrationDir)
+    .filter((file) => file.match(/^\d+-.+\.(ts|js)$/))
+    .sort((a, b) => {
+      const versionA = parseInt(a.split('-')[0]);
+      const versionB = parseInt(b.split('-')[0]);
+      return versionA - versionB;
+    });
+
+  // 执行未应用的迁移
+  for (const file of migrationFiles) {
+    const version = parseInt(file.split('-')[0]);
+    if (appliedVersions.has(version)) continue;
+
+    const migration = require(path.join(migrationDir, file)).default;
+    db!.transaction(() => {
+      migration(db);
+      db!.prepare('INSERT INTO migrations (version, name) VALUES (?, ?)').run(version, file);
+    })();
+
+    console.log(`✅ Applied migration: ${file}`);
+  }
+}
+
 // 初始化数据库
 export async function initDatabase() {
   if (db) return db;
@@ -20,11 +78,16 @@ export async function initDatabase() {
   ensureDirExists(path.dirname(DB_PATH));
   ensureDirExists(BACKUP_DIR);
 
-  // 创建数据库连接
+  // 创建数据库连接并启用WAL模式
   db = new Database(DB_PATH, DB_CONFIG);
+  db.pragma('journal_mode = WAL');
+  db.pragma('synchronous = NORMAL');
+  db.pragma('cache_size = -20000'); // 20MB缓存
+  db.pragma('foreign_keys = ON'); // 启用外键约束
+  db.pragma('temp_store = MEMORY'); // 临时表存储在内存
 
-  // 执行初始化SQL
-  db.exec(INIT_SQL);
+  // 运行数据库迁移
+  runMigrations();
 
   // 启动自动备份
   if (BACKUP_CONFIG.enabled) {

@@ -1,9 +1,9 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import fs from 'fs';
 import path from 'path';
-import { createNovel, getNovelById, getNovelTotalWordCount, getNovelProgress, listNovels } from '../database/dao/novel.dao';
-import { getCompletedChapterIds } from '../database/dao/chapter.dao';
-import { createOutlineNode } from '../database/dao/outline.dao';
+import { novelDAO } from '../database/dao/novel.dao';
+import { chapterDAO } from '../database/dao/chapter.dao';
+import { outlineNodeDAO } from '../database/dao/outline-node.dao';
 
 // 创建小说
 export async function createNovel(request: FastifyRequest<{
@@ -17,34 +17,43 @@ export async function createNovel(request: FastifyRequest<{
 }>, reply: FastifyReply) {
   try {
     const params = request.body;
-    const novel = await createNovel(params);
+    const novel = novelDAO.create(params);
 
     // 自动创建默认三幕大纲结构
-    const act1 = await createOutlineNode({
-      novelId: novel.id,
+    const act1Id = outlineNodeDAO.insert({
+      novel_id: novel.id,
       level: 1,
       order: 1,
       title: '第一幕：入世',
       description: '故事开端，介绍世界观、主要人物，触发核心冲突',
-      status: 'pending'
+      status: 'pending',
+      path: '1',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
     });
 
-    const act2 = await createOutlineNode({
-      novelId: novel.id,
+    const act2Id = outlineNodeDAO.insert({
+      novel_id: novel.id,
       level: 1,
       order: 2,
       title: '第二幕：成长',
       description: '主角踏上冒险，遭遇一系列挫折，midpoint转折点，冲突升级',
-      status: 'pending'
+      status: 'pending',
+      path: '2',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
     });
 
-    const act3 = await createOutlineNode({
-      novelId: novel.id,
+    const act3Id = outlineNodeDAO.insert({
+      novel_id: novel.id,
       level: 1,
       order: 3,
       title: '第三幕：巅峰',
       description: '最终对决，冲突解决，人物弧光完成，结局收尾',
-      status: 'pending'
+      status: 'pending',
+      path: '3',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
     });
 
     // 创建绑定配置文件
@@ -132,7 +141,7 @@ export async function getNovelInfo(request: FastifyRequest<{
 }>, reply: FastifyReply) {
   try {
     const { novelId } = request.body;
-    const novel = await getNovelById(novelId);
+    const novel = novelDAO.findById(novelId);
 
     if (!novel) {
       return reply.status(404).send({
@@ -141,8 +150,8 @@ export async function getNovelInfo(request: FastifyRequest<{
       });
     }
 
-    const totalWordCount = await getNovelTotalWordCount(novelId);
-    const progress = await getNovelProgress(novelId);
+    const totalWordCount = novelDAO.getTotalWordCount(novelId);
+    const progress = novelDAO.getProgress(novelId);
 
     return reply.send({
       success: true,
@@ -163,22 +172,23 @@ export async function getNovelInfo(request: FastifyRequest<{
 // 获取小说列表
 export async function listNovels(request: FastifyRequest, reply: FastifyReply) {
   try {
-    const novels = await listNovels();
+    const novels = novelDAO.listAll();
 
-    const novelsWithStats = await Promise.all(novels.map(async novel => {
-      const totalWordCount = await getNovelTotalWordCount(novel.id);
-      const progress = await getNovelProgress(novel.id);
-      return {
-        ...novel,
-        totalWordCount,
-        progress
-      };
-    }));
+    // 暂时注释统计信息，先测试基本功能
+    // const novelsWithStats = novels.map(novel => {
+    //   const totalWordCount = novelDAO.getTotalWordCount(novel.id);
+    //   const progress = novelDAO.getProgress(novel.id);
+    //   return {
+    //     ...novel,
+    //     totalWordCount,
+    //     progress
+    //   };
+    // });
 
     return reply.send({
       success: true,
       data: {
-        novels: novelsWithStats
+        novels: novels
       }
     });
   } catch (error: any) {
@@ -197,7 +207,7 @@ export async function getNovelOverview(request: FastifyRequest<{
 }>, reply: FastifyReply) {
   try {
     const { novelId } = request.body;
-    const novel = await getNovelById(novelId);
+    const novel = novelDAO.findById(novelId);
 
     if (!novel) {
       return reply.status(404).send({
@@ -206,9 +216,9 @@ export async function getNovelOverview(request: FastifyRequest<{
       });
     }
 
-    const totalWordCount = await getNovelTotalWordCount(novelId);
-    const progress = await getNovelProgress(novelId);
-    const completedChapterIds = await getCompletedChapterIds(novelId);
+    const totalWordCount = novelDAO.getTotalWordCount(novelId);
+    const progress = novelDAO.getProgress(novelId);
+    const completedChapterIds = chapterDAO.getCompletedChapterIds(novelId);
 
     return reply.send({
       success: true,
@@ -235,7 +245,7 @@ export async function getStoryTimeline(request: FastifyRequest<{
 }>, reply: FastifyReply) {
   try {
     const { novelId } = request.body;
-    const completedChapterIds = await getCompletedChapterIds(novelId);
+    const completedChapterIds = chapterDAO.getCompletedChapterIds(novelId);
 
     // 这里可以实现更复杂的时间线生成逻辑，从章节中提取关键事件
     // 简化实现，暂时返回章节ID列表

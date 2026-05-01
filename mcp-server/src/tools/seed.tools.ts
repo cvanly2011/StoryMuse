@@ -1,8 +1,8 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import fs from 'fs';
 import path from 'path';
-import { createSeed, getMaxVersion, getActiveSeed, listSeedVersions, setActiveSeed } from '../database/dao/seed.dao';
-import { markSnapshotsExpired } from '../database/dao/snapshot.dao';
+import { storySeedDAO } from '../database/dao/story-seed.dao';
+import { contextSnapshotDAO } from '../database/dao/context-snapshot.dao';
 
 // 保存故事种子
 export async function saveStorySeed(request: FastifyRequest<{
@@ -17,17 +17,30 @@ export async function saveStorySeed(request: FastifyRequest<{
 }>, reply: FastifyReply) {
   try {
     const params = request.body;
-    const maxVersion = await getMaxVersion(params.novelId);
+    const maxVersion = storySeedDAO.getLatestVersion(params.novelId);
     const newVersion = maxVersion + 1;
 
-    const seed = await createSeed({
-      ...params,
+    const seedId = storySeedDAO.insert({
+      novel_id: params.novelId,
       version: newVersion,
-      isActive: params.setAsActive ?? false
+      core_idea: params.coreIdea,
+      world_setting: params.worldSetting,
+      core_characters_silhouette: params.coreCharactersSilhouette,
+      selling_points: params.sellingPoints,
+      is_active: params.setAsActive ?? false,
+      created_at: new Date().toISOString()
     });
 
     // 更新工作区的story-seed.md文件
     if (params.setAsActive) {
+      // 将其他版本设为非激活
+      if (maxVersion > 0) {
+        storySeedDAO.updateBy(
+          { novel_id: params.novelId, version: { $ne: newVersion } as any },
+          { is_active: false }
+        );
+      }
+
       const seedPath = path.join(process.cwd(), 'story-seed.md');
       let content = `# 故事核心设定 v${newVersion}
 ## 核心创意
@@ -57,15 +70,15 @@ ${params.sellingPoints}
 
       fs.writeFileSync(seedPath, content);
 
-      // 标记所有快照过期，因为核心设定修改了
-      await markSnapshotsExpired(params.novelId, 1);
+      // 标记所有快照过期，因为核心设定修改了（暂时注释，后续实现）
+      // await markSnapshotsExpired(params.novelId, 1);
     }
 
     return reply.send({
       success: true,
       data: {
-        seedId: seed.id,
-        version: seed.version
+        seedId: seedId,
+        version: newVersion
       }
     });
   } catch (error: any) {
@@ -84,11 +97,21 @@ export async function getActiveSeed(request: FastifyRequest<{
 }>, reply: FastifyReply) {
   try {
     const { novelId } = request.body;
-    const seed = await getActiveSeed(novelId);
+    const seed = storySeedDAO.findActiveByNovelId(novelId);
 
     return reply.send({
       success: true,
-      data: seed || null
+      data: seed ? {
+        id: seed.id,
+        novelId: seed.novel_id,
+        version: seed.version,
+        coreIdea: seed.core_idea,
+        worldSetting: seed.world_setting,
+        coreCharactersSilhouette: seed.core_characters_silhouette,
+        sellingPoints: seed.selling_points,
+        isActive: seed.is_active,
+        createdAt: seed.created_at
+      } : null
     });
   } catch (error: any) {
     return reply.status(500).send({
@@ -106,7 +129,7 @@ export async function listSeedVersions(request: FastifyRequest<{
 }>, reply: FastifyReply) {
   try {
     const { novelId } = request.body;
-    const versions = await listSeedVersions(novelId);
+    const versions = storySeedDAO.findAllByNovelId(novelId);
 
     return reply.send({
       success: true,
@@ -114,9 +137,9 @@ export async function listSeedVersions(request: FastifyRequest<{
         versions: versions.map(v => ({
           id: v.id,
           version: v.version,
-          coreIdea: v.coreIdea.substring(0, 100) + (v.coreIdea.length > 100 ? '...' : ''),
-          createdAt: v.createdAt,
-          isActive: v.isActive
+          coreIdea: v.core_idea.substring(0, 100) + (v.core_idea.length > 100 ? '...' : ''),
+          createdAt: v.created_at,
+          isActive: v.is_active
         }))
       }
     });

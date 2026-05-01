@@ -1,91 +1,71 @@
-import { getDb } from '../index';
+import { BaseDAO } from './base.dao';
 
 export interface Character {
   id: number;
-  novelId: number;
+  novel_id: number;
   name: string;
   alias?: string;
   role: 'protagonist' | 'antagonist' | 'supporting' | 'guest' | 'npc';
   appearance?: string;
   personality?: string;
-  innerConflict?: string;
-  coreDesire?: string;
-  coreFear?: string;
-  characterArc?: string;
-  signatureLines?: string;
+  inner_conflict?: string;
+  core_desire?: string;
+  core_fear?: string;
+  character_arc?: string;
+  signature_lines?: string;
   backstory?: string;
-  firstAppearanceChapterId?: number;
-  finalOutcome?: string;
-  isArchived: boolean;
-  createdAt: string;
-  updatedAt: string;
+  first_appearance_chapter_id?: number;
+  final_outcome?: string;
+  is_archived: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
-// 创建人物
-export function createCharacter(params: Omit<Character, 'id' | 'createdAt' | 'updatedAt' | 'isArchived'>) {
-  const db = getDb();
-  const stmt = db.prepare(`
-    INSERT INTO characters (novel_id, name, alias, role, appearance, personality, inner_conflict, core_desire, core_fear, character_arc, signature_lines, backstory, first_appearance_chapter_id, final_outcome)
-    VALUES (@novelId, @name, @alias, @role, @appearance, @personality, @innerConflict, @coreDesire, @coreFear, @characterArc, @signatureLines, @backstory, @firstAppearanceChapterId, @finalOutcome)
-    RETURNING *
-  `);
+class CharacterDAO extends BaseDAO<Character> {
+  protected tableName = 'characters';
+  protected primaryKey = 'id';
 
-  const result = stmt.get({ ...params, isArchived: false }) as Character;
-  return result;
-}
+  // 获取小说的所有人物
+  public findAllByNovelId(novelId: number, includeArchived: boolean = false): Character[] {
+    let sql = `SELECT * FROM ${this.tableName} WHERE novel_id = ?`;
+    const params: any[] = [novelId];
 
-// 更新人物
-export function updateCharacter(id: number, updates: Partial<Character>) {
-  const db = getDb();
-  const fields = Object.keys(updates)
-    .map(key => {
-      const dbKey = key.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
-      return `${dbKey} = @${key}`;
-    })
-    .join(', ');
+    if (!includeArchived) {
+      sql += ` AND is_archived = false`;
+    }
 
-  const stmt = db.prepare(`
-    UPDATE characters
-    SET ${fields}, updated_at = CURRENT_TIMESTAMP
-    WHERE id = @id
-    RETURNING *
-  `);
-
-  return stmt.get({ ...updates, id }) as Character;
-}
-
-// 获取人物列表
-export function listCharacters(novelId: number, role?: string) {
-  const db = getDb();
-  let sql = 'SELECT * FROM characters WHERE novel_id = ? AND is_archived = 0';
-  const params: any[] = [novelId];
-
-  if (role) {
-    sql += ' AND role = ?';
-    params.push(role);
+    sql += ` ORDER BY CASE role WHEN 'protagonist' THEN 1 WHEN 'antagonist' THEN 2 WHEN 'supporting' THEN 3 ELSE 4 END, name`;
+    return this.getDb().prepare(sql).all(...params) as Character[];
   }
 
-  sql += ' ORDER BY CASE role WHEN "protagonist" THEN 1 WHEN "antagonist" THEN 2 WHEN "supporting" THEN 3 ELSE 4 END, name';
+  // 按角色类型筛选人物
+  public findByRole(novelId: number, role: string): Character[] {
+    const sql = `SELECT * FROM ${this.tableName} WHERE novel_id = ? AND role = ? AND is_archived = false ORDER BY name`;
+    return this.getDb().prepare(sql).all(novelId, role) as Character[];
+  }
 
-  const stmt = db.prepare(sql);
-  return stmt.all(...params) as Character[];
+  // 根据姓名查找人物
+  public findByName(novelId: number, name: string): Character | undefined {
+    const sql = `SELECT * FROM ${this.tableName} WHERE novel_id = ? AND (name = ? OR alias = ?) AND is_archived = false LIMIT 1`;
+    return this.getDb().prepare(sql).get(novelId, name, name) as Character | undefined;
+  }
+
+  // 获取某个人物出场的所有章节ID
+  public getAppearanceChapterIds(characterId: number): number[] {
+    const sql = `
+      SELECT DISTINCT c.outline_node_id
+      FROM chapters c, json_each(c.character_appearances) as ca
+      WHERE json_extract(ca.value, '$.characterId') = ? AND c.is_current = 1
+    `;
+    const result = this.getDb().prepare(sql).all(characterId) as { outline_node_id: number }[];
+    return result.map(item => item.outline_node_id);
+  }
+
+  // 更新人物的更新时间
+  public updateUpdatedAt(id: number): number {
+    return this.update(id, { updated_at: new Date().toISOString() } as Partial<Character>);
+  }
 }
 
-// 根据ID获取人物
-export function getCharacterById(id: number) {
-  const db = getDb();
-  const stmt = db.prepare('SELECT * FROM characters WHERE id = ?');
-  return stmt.get(id) as Character | undefined;
-}
+export const characterDAO = new CharacterDAO();
 
-// 获取某个人物出场的所有章节ID
-export function getCharacterAppearanceChapterIds(characterId: number) {
-  const db = getDb();
-  const stmt = db.prepare(`
-    SELECT DISTINCT c.outline_node_id
-    FROM chapters c, json_each(c.character_appearances) as ca
-    WHERE json_extract(ca.value, '$.characterId') = ? AND c.is_current = 1
-  `);
-  const result = stmt.all(characterId) as { outline_node_id: number }[];
-  return result.map(item => item.outline_node_id);
-}

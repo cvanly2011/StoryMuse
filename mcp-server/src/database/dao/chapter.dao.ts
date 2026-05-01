@@ -1,94 +1,101 @@
-import { getDb } from '../index';
+import { BaseDAO } from './base.dao';
 
 export interface Chapter {
   id: number;
-  outlineNodeId: number;
+  outline_node_id: number;
   version: number;
   content: string;
-  wordCount: number;
+  word_count: number;
   summary: string;
-  keyEvents: string; // JSON数组
-  characterAppearances: string; // JSON数组
-  foreshadowingIds?: string; // JSON数组
-  createdBy?: string;
-  isCurrent: boolean;
-  createdAt: string;
+  key_events: string; // JSON 数组
+  character_appearances: string; // JSON 数组
+  foreshadowing_ids?: string; // JSON 数组
+  created_by?: string;
+  is_current: boolean;
+  created_at: string;
 }
 
-// 创建章节版本
-export function createChapterVersion(params: Omit<Chapter, 'id' | 'createdAt' | 'isCurrent'>) {
-  const db = getDb();
+class ChapterDAO extends BaseDAO<Chapter> {
+  protected tableName = 'chapters';
+  protected primaryKey = 'id';
 
-  // 先把之前的当前版本设为非当前
-  const deactivateStmt = db.prepare('UPDATE chapters SET is_current = 0 WHERE outline_node_id = ?');
-  deactivateStmt.run(params.outlineNodeId);
-
-  const stmt = db.prepare(`
-    INSERT INTO chapters (outline_node_id, version, content, word_count, summary, key_events, character_appearances, foreshadowing_ids, created_by, is_current)
-    VALUES (@outlineNodeId, @version, @content, @wordCount, @summary, @keyEvents, @characterAppearances, @foreshadowingIds, @createdBy, 1)
-    RETURNING *
-  `);
-
-  const result = stmt.get(params) as Chapter;
-  return result;
-}
-
-// 获取章节的最大版本号
-export function getMaxChapterVersion(outlineNodeId: number) {
-  const db = getDb();
-  const stmt = db.prepare('SELECT MAX(version) as maxVersion FROM chapters WHERE outline_node_id = ?');
-  const result = stmt.get(outlineNodeId) as { maxVersion: number | null };
-  return result.maxVersion || 0;
-}
-
-// 获取章节版本列表
-export function listChapterVersions(outlineNodeId: number) {
-  const db = getDb();
-  const stmt = db.prepare('SELECT id, version, word_count, created_by, created_at FROM chapters WHERE outline_node_id = ? ORDER BY version DESC');
-  return stmt.all(outlineNodeId) as Omit<Chapter, 'content' | 'summary' | 'keyEvents' | 'characterAppearances' | 'foreshadowingIds' | 'isCurrent'>[];
-}
-
-// 获取章节内容
-export function getChapterContent(outlineNodeId: number, version?: number) {
-  const db = getDb();
-  let sql = 'SELECT * FROM chapters WHERE outline_node_id = ?';
-  const params: any[] = [outlineNodeId];
-
-  if (version !== undefined) {
-    sql += ' AND version = ?';
-    params.push(version);
-  } else {
-    sql += ' AND is_current = 1';
+  // 获取大纲节点的当前版本章节
+  public findCurrentByOutlineNodeId(outlineNodeId: number): Chapter | undefined {
+    return this.findOne({ outline_node_id: outlineNodeId, is_current: true });
   }
 
-  const stmt = db.prepare(sql);
-  return stmt.get(...params) as Chapter | undefined;
+  // 获取大纲节点的所有版本章节，按版本号降序排列
+  public findAllByOutlineNodeId(outlineNodeId: number): Chapter[] {
+    const sql = `SELECT * FROM ${this.tableName} WHERE outline_node_id = ? ORDER BY version DESC`;
+    return this.getDb().prepare(sql).all(outlineNodeId) as Chapter[];
+  }
+
+  // 获取大纲节点的指定版本章节
+  public findByVersion(outlineNodeId: number, version: number): Chapter | undefined {
+    return this.findOne({ outline_node_id: outlineNodeId, version });
+  }
+
+  // 获取大纲节点的最新版本号
+  public getLatestVersion(outlineNodeId: number): number {
+    const sql = `SELECT MAX(version) as max_version FROM ${this.tableName} WHERE outline_node_id = ?`;
+    const result = this.getDb().prepare(sql).get(outlineNodeId) as { max_version: number | null };
+    return result.max_version || 0;
+  }
+
+  // 创建新的章节版本，并自动设为当前版本
+  public createVersion(params: Omit<Chapter, 'id' | 'created_at' | 'is_current'>): Chapter {
+    return this.transaction(() => {
+      // 先将所有版本设置为非当前
+      this.updateBy({ outline_node_id: params.outline_node_id }, { is_current: false });
+      // 创建新版本并设为当前
+      const id = this.insert({
+        ...params,
+        is_current: true,
+        created_at: new Date().toISOString()
+      });
+      // 返回创建的章节
+      const chapter = this.findById(id);
+      if (!chapter) {
+        throw new Error('创建章节失败');
+      }
+      return chapter;
+    });
+  }
+
+  // 将指定版本设置为当前版本，其他版本设置为非当前
+  public setCurrentVersion(outlineNodeId: number, version: number): number {
+    return this.transaction(() => {
+      // 先将所有版本设置为非当前
+      this.updateBy({ outline_node_id: outlineNodeId }, { is_current: false });
+      // 再将指定版本设置为当前
+      return this.updateBy({ outline_node_id: outlineNodeId, version }, { is_current: true });
+    });
+  }
+
+  // 获取小说的所有已完成章节
+  public findCompletedByNovelId(novelId: number): Chapter[] {
+    const sql = `
+      SELECT c.* FROM ${this.tableName} c
+      JOIN outline_nodes o ON c.outline_node_id = o.id
+      WHERE o.novel_id = ? AND c.is_current = true AND o.status = 'completed'
+      ORDER BY o.path
+    `;
+    return this.getDb().prepare(sql).all(novelId) as Chapter[];
+  }
+
+  // 获取小说的所有已完成章节ID
+  public getCompletedChapterIds(novelId: number): number[] {
+    const sql = `
+      SELECT o.id
+      FROM outline_nodes o
+      JOIN chapters c ON o.id = c.outline_node_id
+      WHERE o.novel_id = ? AND o.status = 'completed' AND c.is_current = 1
+      ORDER BY o.path
+    `;
+    const result = this.getDb().prepare(sql).all(novelId) as { id: number }[];
+    return result.map(item => item.id);
+  }
 }
 
-// 回滚到指定版本
-export function rollbackChapter(outlineNodeId: number, targetVersion: number) {
-  const db = getDb();
+export const chapterDAO = new ChapterDAO();
 
-  // 把目标版本设为当前版本
-  const deactivateStmt = db.prepare('UPDATE chapters SET is_current = 0 WHERE outline_node_id = ?');
-  deactivateStmt.run(outlineNodeId);
-
-  const activateStmt = db.prepare('UPDATE chapters SET is_current = 1 WHERE outline_node_id = ? AND version = ?');
-  activateStmt.run(outlineNodeId, targetVersion);
-
-  return getChapterContent(outlineNodeId, targetVersion);
-}
-
-// 获取所有已完成的章节ID
-export function getCompletedChapterIds(novelId: number) {
-  const db = getDb();
-  const stmt = db.prepare(`
-    SELECT o.id
-    FROM outline_nodes o
-    JOIN chapters c ON o.id = c.outline_node_id
-    WHERE o.novel_id = ? AND o.status = 'completed' AND c.is_current = 1
-    ORDER BY o.path
-  `);
-  const result = stmt.all(novelId) as { id: number }[];
-  return result.map(item => item.id);
-}
