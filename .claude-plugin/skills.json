@@ -4,49 +4,49 @@
       "id": "story-seed",
       "name": "/story-seed",
       "description": "梳理故事核心创意、世界观、核心冲突、卖点，生成故事种子",
-      "entryPoint": "${pluginPath}/skills/story-seed.md",
+      "entryPoint": "../skills/story-seed.md",
       "category": "创作引导"
     },
     {
       "id": "story-skeleton",
       "name": "/story-skeleton",
       "description": "生成/调整三幕式四级大纲结构，自动同步章节目录",
-      "entryPoint": "${pluginPath}/skills/story-skeleton.md",
+      "entryPoint": "../skills/story-skeleton.md",
       "category": "创作引导"
     },
     {
       "id": "story-characters",
       "name": "/story-characters",
       "description": "完善人物设定与动态关系网络",
-      "entryPoint": "${pluginPath}/skills/story-characters.md",
+      "entryPoint": "../skills/story-characters.md",
       "category": "创作引导"
     },
     {
       "id": "story-write",
       "name": "/story-write",
       "description": "章节写作/续写/版本管理，自动加载上下文快照",
-      "entryPoint": "${pluginPath}/skills/story-write.md",
+      "entryPoint": "../skills/story-write.md",
       "category": "核心功能"
     },
     {
       "id": "story-check",
       "name": "/story-check",
       "description": "质量检查：人物一致性、伏笔回收、情节逻辑、平台合规",
-      "entryPoint": "${pluginPath}/skills/story-check.md",
+      "entryPoint": "../skills/story-check.md",
       "category": "辅助功能"
     },
     {
       "id": "story-map",
       "name": "/story-map",
       "description": "全局进度视图：字数统计、完成进度、情节脉络、伏笔追踪",
-      "entryPoint": "${pluginPath}/skills/story-map.md",
+      "entryPoint": "../skills/story-map.md",
       "category": "辅助功能"
     },
     {
       "id": "load",
       "name": "/load",
       "description": "同步手动修改的文件到数据库",
-      "entryPoint": "${pluginPath}/skills/load.md",
+      "entryPoint": "../skills/load.md",
       "category": "工具"
     }
   ]
