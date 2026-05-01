@@ -23,15 +23,5 @@
     "fileSystem:readWrite",
     "childProcess:execute",
     "network:local"
-  ],
-  "mcpServers": [
-    {
-      "id": "storymuse-mcp",
-      "name": "StoryMuse MCP Server",
-      "command": "${pluginPath}/mcp-server/start.sh",
-      "cwd": "${pluginPath}/mcp-server",
-      "port": 19876,
-      "readyTimeout": 30000
-    }
   ]
 }
