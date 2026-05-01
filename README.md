@@ -6,6 +6,7 @@
 [![MCP Compatible](https://img.shields.io/badge/MCP%20Protocol-Compatible-blue)]()
 [![Version](https://img.shields.io/badge/version-1.0.0-green)]()
 [![Platform Support](https://img.shields.io/badge/platform-macOS%20%7C%20Windows%20%7C%20Linux-lightgrey)]()
+[![Claude Code Plugin](https://img.shields.io/badge/Claude%20Code-Plugin%20Available-purple)]()
 
 [English](README.md) | [中文](README-zh.md)
 
@@ -32,30 +33,26 @@ StoryMuse implements a structured, AI-assisted workflow that guides creators fro
 ---
 
 ## 🚀 Quick Start
-### Prerequisites
-- Any AI assistant/editor with Model Context Protocol (MCP) support
-- Node.js 18+ for running the local backend service
+### Option 1: One-Click Plugin Installation (Recommended)
+**No technical knowledge required, zero configuration needed**:
+1. Open Claude Code editor
+2. Go to **Settings → Plugins**
+3. Search for **StoryMuse**
+4. Click **Install**
+5. Create a new folder and start writing immediately
 
-### Installation
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/cvanly2011/StoryMuse.git
-   cd StoryMuse
-   ```
+The plugin comes with the MCP service pre-bundled. No need to install Node.js, configure anything, or run commands. All functionality works out of the box.
 
-2. **Set up the MCP service**
-   ```bash
-   cd mcp-server
-   npm install --production
-   ```
+---
 
-3. **Configure with your AI environment**
-   Add the StoryMuse MCP server path to your MCP-compatible AI assistant/editor configuration.
-
-4. **Initialize your first novel**
-   ```
-   /create-novel "Novel Title" "Core story concept"
-   ```
+### Option 2: Install from Git Repository
+If you want to use the latest development version:
+1. Open Claude Code editor
+2. Go to **Settings → Plugins**
+3. Click **Install from Git**
+4. Enter the repository URL: `https://github.com/cvanly2011/StoryMuse.git`
+5. Click **Install**
+6. Create a new folder and start writing immediately
 
 ### Project Structure
 StoryMuse generates a clean, human-readable, and tool-agnostic project structure:

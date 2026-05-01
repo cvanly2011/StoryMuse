@@ -6,6 +6,7 @@
 [![MCP 协议兼容](https://img.shields.io/badge/MCP%20Protocol-兼容-blue)]()
 [![版本](https://img.shields.io/badge/version-1.0.0-green)]()
 [![平台支持](https://img.shields.io/badge/platform-macOS%20%7C%20Windows%20%7C%20Linux-lightgrey)]()
+[![Claude Code 插件可用](https://img.shields.io/badge/Claude%20Code-插件已上线-purple)]()
 
 [English](README.md) | [中文](README-zh.md)
 
@@ -32,30 +33,26 @@ StoryMuse 实现了结构化的 AI 辅助创作流程，引导创作者从初始
 ---
 
 ## 🚀 快速开始
-### 前置要求
-- 任何支持模型上下文协议（MCP）的 AI 助手/编辑器
-- Node.js 18+ 用于运行本地后端服务
+### 方式一：一键插件安装（推荐）
+**无需任何技术知识，零配置开箱即用**：
+1. 打开 Claude Code 编辑器
+2. 进入 **设置 → 插件**
+3. 搜索 **StoryMuse**
+4. 点击 **安装**
+5. 新建空白文件夹即可开始创作
 
-### 安装
-1. **克隆仓库**
-   ```bash
-   git clone https://github.com/cvanly2011/StoryMuse.git
-   cd StoryMuse
-   ```
+插件已内置完整的 MCP 服务，无需安装 Node.js，无需配置任何参数，无需运行命令，所有功能开箱即用。
 
-2. **配置 MCP 服务**
-   ```bash
-   cd mcp-server
-   npm install --production
-   ```
+---
 
-3. **配置 AI 环境**
-   将 StoryMuse MCP 服务路径添加到你使用的兼容 MCP 的 AI 助手/编辑器配置中。
-
-4. **初始化你的第一部小说**
-   ```
-   /create-novel "小说名称" "核心故事概念"
-   ```
+### 方式二：从 Git 仓库安装
+如果你想使用最新的开发版本：
+1. 打开 Claude Code 编辑器
+2. 进入 **设置 → 插件**
+3. 点击 **从 Git 安装**
+4. 输入仓库地址：`https://github.com/cvanly2011/StoryMuse.git`
+5. 点击 **安装**
+6. 新建空白文件夹即可开始创作
 
 ### 项目结构
 StoryMuse 生成清晰、人类可读、工具无关的项目结构：
