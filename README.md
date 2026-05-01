@@ -33,6 +33,12 @@ StoryMuse implements a structured, AI-assisted workflow that guides creators fro
 ---
 
 ## 🚀 Quick Start
+
+### Prerequisite
+Node.js 18+ is required to run the local MCP service. If you don't have it installed, download it from [nodejs.org](https://nodejs.org/) first.
+
+---
+
 ### Option 1: One-Click Plugin Installation (Recommended)
 **No technical knowledge required, zero configuration needed**:
 1. Open Claude Code editor
@@ -41,7 +47,7 @@ StoryMuse implements a structured, AI-assisted workflow that guides creators fro
 4. Click **Install**
 5. Create a new folder and start writing immediately
 
-The plugin comes with the MCP service pre-bundled. No need to install Node.js, configure anything, or run commands. All functionality works out of the box.
+The plugin will automatically install dependencies and build the service on first run. All functionality works out of the box.
 
 ---
 
