@@ -3,7 +3,20 @@
   "name": "StoryMuse",
   "version": "1.0.0",
   "description": "专属网文创作者的AI缪斯，引导你将创意成长为百万字完本小说。",
-  "author": "StoryMuse Team",
+  "author": {
+    "name": "StoryMuse Team",
+    "email": "team@storymuse.com"
+  },
+  "homepage": "https://github.com/cvanly2011/StoryMuse",
+  "repository": "https://github.com/cvanly2011/StoryMuse",
+  "license": "MIT",
+  "keywords": [
+    "小说",
+    "写作",
+    "AI辅助",
+    "网文",
+    "创作工具"
+  ],
   "icon": "icon.svg",
   "minAppVersion": "1.0.0",
   "permissions": [
