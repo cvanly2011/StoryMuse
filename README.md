@@ -1,123 +1,237 @@
-# 🎭 StoryMuse - Claude Code Plugin for Novel Writers
+# StoryMuse: AI-Powered Novel Writing Toolkit
 
-> Your AI writing muse, turning vague ideas into full-length novels.
+> Transform creative ideas into full-length novels with intelligent, privacy-first assistance. Built for writers and developers who demand full control over their creative process.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Claude Code Compatible](https://img.shields.io/badge/Claude%20Code-Compatible-blue)]()
+[![MCP Compatible](https://img.shields.io/badge/MCP%20Protocol-Compatible-blue)]()
 [![Version](https://img.shields.io/badge/version-1.0.0-green)]()
+[![Platform Support](https://img.shields.io/badge/platform-macOS%20%7C%20Windows%20%7C%20Linux-lightgrey)]()
 
 [English](README.md) | [中文](README-zh.md)
 
-## ✨ Core Features
-### 🎯 7 Core Skills
-1. **/story-seed** - Expand a one-sentence idea into a structured story core card
-2. **/story-skeleton** - Generate a complete 3-act 4-level story outline structure
-3. **/story-characters** - Deep character design and dynamic relationship network management
-4. **/story-write** - Chapter-by-chapter writing with multi-version support and low-token context
-5. **/story-check** - Consistency check, plot hole detection, and Socratic guiding feedback
-6. **/story-map** - Read-only global view of your story progress and state
-7. **/load** - Sync manual file modifications back to the database
+---
 
-### ⚡ Key Advantages
-- **100% Local Storage** - All your content stays on your computer, no cloud uploads, absolute privacy
-- **Low Token Optimization** - Context snapshots strictly controlled ≤ 2000 tokens, no full text transmission
-- **Multi-Platform Support** - Native adaptation for 8 major Chinese web novel platforms
-- **Git Friendly** - One branch corresponds to one story version, perfect for multi-ending experiments
-- **No Export Needed** - Chapters are saved as standard Markdown files, ready to publish directly
-- **Million-Word Support** - Optimized for long-form novels, smooth performance even with 1M+ words
+## ✨ Core Capabilities
+StoryMuse implements a structured, AI-assisted workflow that guides creators from initial concept to publish-ready novel:
 
-## 🚀 Quick Start
-### Installation
-1. Open Claude Code → Settings → Plugins
-2. Search for "StoryMuse" and install with one click
-3. Or download the plugin package and install manually
+### 🎯 Intelligent Writing Pipeline
+- **Idea Refinement**: Turn one-sentence concepts into structured story cores with guided prompting
+- **Outline Generation**: Automatic 3-act, 4-level narrative structure following classic storytelling principles
+- **Character Design**: Deep character profiling with dynamic relationship network mapping and evolution tracking
+- **Chapter Composition**: Context-aware writing assistance with built-in multi-version management and rollback
+- **Quality Assurance**: Character consistency validation, plot hole detection, foreshadowing tracking, and platform compliance scanning
+- **Global Visibility**: Comprehensive progress tracking and story state visualization
 
-### 30 Seconds to Start Your First Novel
-1. Create a new empty folder and open it with Claude Code
-2. Run: 
-   ```
-   /create-novel "My First Novel" "Core idea of your story"
-   ```
-3. Choose your target publishing platform
-4. Start writing!
-
-The following files will be automatically generated in your workspace:
-```
-your-project/
-├── .claude/                  # Plugin data directory (auto-managed)
-├── .story-muse.config.json   # Project binding config (auto-generated)
-├── story-seed.md             # Story core setting
-├── outline.md                # Story outline
-├── characters.md             # Character design
-└── chapters/                 # Chapter content directory
-    └── Chapter 1 Title.md
-```
-
-## 📖 Standard Workflow
-1. **Idea Phase**: Use `/story-seed` to refine your core idea
-2. **Outline Phase**: Use `/story-skeleton` to generate a complete 3-act outline
-3. **Character Phase**: Use `/story-characters` to design characters and relationships
-4. **Writing Phase**: Use `/story-write` to write chapter by chapter
-5. **Review Phase**: Use `/story-check` to check quality and consistency
-6. **Global View**: Use `/story-map` anytime to see your progress
-
-## 🎯 Supported Platforms
-StoryMuse natively adapts to major Chinese web novel platforms:
-- ✅ Qidian (起点中文网)
-- ✅ Jinjiang (晋江文学城)
-- ✅ Tomato Novel (番茄小说)
-- ✅ Qimao Novel (七猫免费小说)
-- ✅ Zongheng (纵横中文网)
-- ✅ 17K Novel (17K小说网)
-- ✅ Douban Read (豆瓣阅读)
-- ✅ Yuewen Full Platform (阅文全平台)
-
-Each platform includes:
-- Content compliance rules and sensitive word detection
-- Chapter length and structure recommendations
-- Platform-specific rhythm and style guidance
-- Review standard pre-checking
-
-## 🌿 Git Branch Workflow
-Perfect for Git-based version management:
-1. **Different Outlines**: Create branches to try different plot structures
-2. **Multiple Endings**: Write different endings in separate branches
-3. **Platform Adaptation**: Separate branches for different platform requirements
-4. **Collaboration**: Multiple writers work on their own branches, merge easily
-
-**Note**: You only need to commit the Markdown files to Git, no need to commit the `.claude` directory. Switch branches and run `/load --all` to fully restore the state.
-
-## 📊 Performance
-- SQLite with WAL mode, 10x faster read/write performance
-- 1M+ word novel loading < 100ms
-- Context snapshot generation < 50ms
-- Auto backup every hour, 7 versions retention
-
-## 🔒 Privacy & Security
-- 100% of your creative content stored locally on your device
-- No content ever uploaded to any external server
-- No telemetry, no analytics, no data collection
-- All database files are standard SQLite format, fully portable
-
-## 🛠️ Development
-For developers who want to extend or modify StoryMuse:
-```bash
-git clone https://github.com/your-repo/story-muse.git
-cd story-muse/mcp-server
-npm install
-npm run dev
-```
-See [Developer Guide](docs/developer-guide.md) for detailed documentation.
-
-## 📝 Changelog
-See [CHANGELOG.md](docs/changelog.md) for version history.
-
-## 🤝 Contributing
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-## 📄 License
-MIT License - see [LICENSE](LICENSE) file for details.
+### ⚡ Design Principles
+- **Privacy First**: 100% local data storage, no creative content ever uploaded to external servers
+- **Low-Context Optimization**: Intelligent context snapshotting keeps token usage ≤ 2000, even for million-word projects
+- **Developer Native**: Git-first version management, plain-text Markdown storage, and extensible plugin architecture
+- **Protocol Standard**: Works with all AI assistants and editors supporting the Model Context Protocol (MCP)
+- **Production Grade**: Optimized for long-form writing, supporting projects with 1M+ words and hundreds of chapters
 
 ---
 
-### 💡 Happy Writing! May your story touch millions of hearts. 🎉
+## 🚀 Quick Start
+### Prerequisites
+- Any AI assistant/editor with Model Context Protocol (MCP) support
+- Node.js 18+ for running the local backend service
+
+### Installation
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/cvanly2011/StoryMuse.git
+   cd StoryMuse
+   ```
+
+2. **Set up the MCP service**
+   ```bash
+   cd mcp-server
+   npm install --production
+   ```
+
+3. **Configure with your AI environment**
+   Add the StoryMuse MCP server path to your MCP-compatible AI assistant/editor configuration.
+
+4. **Initialize your first novel**
+   ```
+   /create-novel "Novel Title" "Core story concept"
+   ```
+
+### Project Structure
+StoryMuse generates a clean, human-readable, and tool-agnostic project structure:
+```
+your-novel/
+├── story-seed.md             # Core concept, worldbuilding, and narrative premise
+├── outline.md                # Full 3-act structure with chapter-level breakdown
+├── characters.md             # Character profiles, arcs, and relationship mapping
+└── chapters/                 # Chapter content as standard, publish-ready Markdown files
+    ├── chapter-01.md
+    ├── chapter-02.md
+    └── ...
+```
+
+No proprietary formats, no vendor lock-in—all content is plain text that you fully own and control.
+
+---
+
+## 🏗️ Technical Architecture
+StoryMuse uses a modular, layered architecture designed for performance and extensibility, following the same design patterns as professional developer tools:
+
+```
+┌─────────────────────────────────────────────────┐
+│  Skill Interface Layer                          │
+│  (Human-readable workflow definitions)          │
+│  • Idea refinement                              │
+│  • Outline generation                           │
+│  • Character design                             │
+│  • Writing assistance                           │
+│  • Quality review                               │
+├─────────────────────────────────────────────────┤
+│  MCP Service Layer                              │
+│  (Standard MCP protocol API)                    │
+│  • CRUD operations for all content types        │
+│  • Intelligent context snapshot generation      │
+│  • Rule-based quality check engines             │
+│  • Bidirectional file synchronization           │
+├─────────────────────────────────────────────────┤
+│  Data Storage Layer                             │
+│  (SQLite with WAL mode optimization)            │
+│  • ACID-compliant local storage                 │
+│  • Automatic incremental backups                │
+│  • Schema optimized for narrative metadata      │
+└─────────────────────────────────────────────────┘
+```
+
+### Key Technical Features
+- **WAL-Optimized SQLite**: 10x faster read/write performance for large writing projects
+- **NLP-Powered Context Management**: Intelligent summarization keeps context windows small and relevant
+- **File Watcher Daemon**: Automatic sync between local file edits and internal metadata database
+- **Branch-Aware Storage**: Git-native architecture enables parallel story version experimentation
+- **Extensible Rule Engine**: Plugin-based platform rule system and quality checkers
+
+---
+
+## 📖 Standard Workflow
+StoryMuse implements a battle-tested creative workflow used by professional fiction writers:
+
+### 1. Ideation Phase
+Refine your core concept using the `/story-seed` module, capturing:
+- Narrative theme and core conflict
+- Worldbuilding rules and constraints
+- Character motivations and story arcs
+- Unique selling points and audience positioning
+
+### 2. Outlining Phase
+Generate a complete narrative structure with `/story-skeleton`:
+- Standard 3-act structure (Setup → Confrontation → Resolution)
+- 4-level hierarchy (Act → Volume → Chapter → Scene)
+- Chapter-level goals, conflict points, and turning points
+- Foreshadowing placement and recovery plan
+
+### 3. Character Development
+Build layered, consistent characters using `/story-characters`:
+- Character profiles with internal conflicts, motivations, and growth arcs
+- Dynamic relationship network tracking relationship evolution across chapters
+- Automatic character consistency enforcement across the entire narrative
+
+### 4. Writing Phase
+Draft your novel chapter by chapter with `/story-write`:
+- Automatic context loading with core premise, recent events, and unresolved plot threads
+- Multi-version chapter management with one-click rollback
+- Automatic key event and character state extraction for continuity tracking
+
+### 5. Review Phase
+Ensure quality and consistency with `/story-check`:
+- Character behavior consistency validation against established profiles
+- Foreshadowing recovery tracking to identify plot threads left hanging
+- Plot logic and timeline verification
+- Target platform compliance and content policy scanning
+
+### 6. Publishing
+All content is standard Markdown—publish directly to any platform without conversion or export.
+
+---
+
+## 🎯 Platform Adaptation
+Built-in support for all major web fiction publishing platforms with automatic rule validation:
+- **Content Compliance**: Platform-specific sensitive word scanning and content policy validation
+- **Structure Optimization**: Chapter length and narrative rhythm recommendations per platform audience
+- **Style Guidance**: Writing style adaptation for different demographic expectations
+- **Review Pre-Check**: Pre-emptive scanning for common review rejection reasons
+
+Currently supports: Qidian, Jinjiang, Tomato Novel, Qimao, Zongheng, 17K, Douban Read, and all Yuewen platforms.
+
+---
+
+## 🌿 Git-Native Version Control
+StoryMuse is designed from the ground up to integrate seamlessly with Git version management:
+- **Multiple Plotlines**: Use separate branches to experiment with different story directions without affecting the main draft
+- **Alternative Endings**: Write and compare multiple endings in isolated branches
+- **Platform Adaptation**: Maintain separate versions optimized for different publishing platform requirements
+- **Collaboration**: Multiple writers can work on different parts of the story simultaneously with standard Git workflows
+
+No proprietary version control system—use the tools you already know and love.
+
+---
+
+## 📊 Performance
+Optimized for professional long-form writing:
+- 1M+ word project loading time: < 100ms
+- Context snapshot generation: < 50ms
+- Automatic hourly backups with 7-version retention
+- Zero network latency—all processing done locally
+
+---
+
+## 🔒 Privacy & Security
+- **100% Local Execution**: All creative content never leaves your device
+- **Zero Telemetry**: No usage data collection, no analytics, no tracking of any kind
+- **Open Formats**: All content stored as standard Markdown and portable SQLite files
+- **No Vendor Lock-in**: You fully own your data, no proprietary formats or restrictions
+
+---
+
+## 🛠️ Development & Extension
+StoryMuse is fully open and extensible:
+
+### Build from Source
+```bash
+git clone https://github.com/cvanly2011/StoryMuse.git
+cd story-muse/mcp-server
+npm install
+npm run build
+```
+
+### Extend Functionality
+- **Add Platform Rules**: Add JSON configuration files in `mcp-server/src/config/platform-rules/`
+- **Create New Workflows**: Add Markdown skill definitions in the `skills/` directory
+- **Extend Check Engines**: Add new quality check logic in `mcp-server/src/services/check.service.ts`
+- **Custom Integrations**: Extend the MCP API to integrate with your writing toolchain
+
+See the [Developer Guide](docs/developer-guide.md) for comprehensive documentation.
+
+---
+
+## 🤝 Contributing
+Contributions are welcome! Whether you're:
+- Adding support for new publishing platforms
+- Improving quality check engines
+- Adding new skill workflows
+- Fixing bugs
+- Improving documentation
+
+Please feel free to submit a Pull Request. For major changes, open an issue first to discuss what you would like to change.
+
+---
+
+## 📝 Changelog
+See [CHANGELOG.md](docs/changelog.md) for version history and release notes.
+
+---
+
+## 📄 License
+MIT License - see [LICENSE](LICENSE) file for full details.
+
+---
+
+> Built with ❤️ for writers who want technology to amplify their creativity, not control it.
