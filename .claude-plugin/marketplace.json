@@ -15,8 +15,11 @@
       "author": {
         "name": "StoryMuse Team"
       },
-      "source": ".",
-      "minAppVersion": "1.0.0"
+      "source": "https://github.com/cvanly2011/StoryMuse.git",
+      "path": ".",
+      "minAppVersion": "1.0.0",
+      "category": "创作工具",
+      "tags": ["小说", "写作", "AI辅助", "网文"]
     }
   ]
 }
