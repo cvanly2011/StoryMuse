@@ -34,14 +34,13 @@ StoryMuse implements a structured, AI-assisted workflow that guides creators fro
 
 ## 🚀 Quick Start
 
-### One-Click Plugin Installation
-**No technical knowledge required, zero configuration needed**:
+### Installation Method 1: From Git Repository
+If you want to use the latest development version:
 1. Open Claude Code editor
-2. Go to **Settings → Plugins**
-3. Install the **Market** plugin first (if not already installed)
-4. Open the Market plugin and search for **StoryMuse**
-5. Click **Install**
-6. Create a new folder and start writing immediately
+2. Enter: `/plugin marketplace add https://github.com/cvanly2011/StoryMuse.git`
+3. After marketplace installation is complete, enter: `/plugin install StoryMuse@storymuse-dev`
+4. Enter: `/reload-plugins` to reload the plugin list
+5. Create a new empty folder and start writing immediately
 
 The plugin will automatically install dependencies and build the service on first run. All functionality works out of the box, no manual setup required.
 

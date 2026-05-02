@@ -34,16 +34,17 @@ StoryMuse 实现了结构化的 AI 辅助创作流程，引导创作者从初始
 
 ## 🚀 快速开始
 
-### 一键插件安装
-**无需任何技术知识，零配置开箱即用**：
-1. 打开 Claude Code 编辑器
-2. 进入 **设置 → 插件**
-3. 先安装 **Market** 插件（如果尚未安装）
-4. 打开 Market 插件，搜索 **StoryMuse**
-5. 点击 **安装**
-6. 新建空白文件夹即可开始创作
+### 前置要求
+运行本地 MCP 服务需要 Node.js 18+ 版本。如果你还没有安装，请先从 [nodejs.org](https://nodejs.org/zh-cn/) 下载安装。
 
-插件首次运行时会自动安装依赖并构建服务，所有功能开箱即用，无需任何手动配置。
+---
+### 方式一：从 Git 仓库安装
+如果你想使用最新的开发版本：
+1. 打开 Claude Code 编辑器
+2. 输入：/plugin marketplace add https://github.com/cvanly2011/StoryMuse.git
+3. marketplace安装完成后再输入：/plugin install StoryMuse@storymuse-dev
+4. 输入：/reload-plugins命令重新加载插件列表
+5. 新建空白文件夹即可开始创作
 
 ### 项目结构
 StoryMuse 生成清晰、人类可读、工具无关的项目结构：

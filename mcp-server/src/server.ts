@@ -5,6 +5,7 @@ import { registerTools } from './tools';
 import { errorHandler } from './middleware/error-handler.middleware';
 import { responseTransformHook } from './middleware/response-transform.middleware';
 import { gitService } from './services/git.service';
+import { ensureProjectInitialized } from './utils/init.util';
 
 const server = fastify({
   logger: {
@@ -23,6 +24,22 @@ server.setErrorHandler(errorHandler);
 
 // 注册响应转换钩子（snake_case → camelCase）
 server.addHook('onSend', responseTransformHook);
+
+// 全局前置钩子：所有请求都先确保项目已初始化
+server.addHook('preHandler', async (request, reply) => {
+  // 健康检查接口跳过初始化
+  if (request.routerPath === '/health') {
+    return;
+  }
+  try {
+    ensureProjectInitialized();
+  } catch (error) {
+    return reply.status(500).send({
+      success: false,
+      message: `项目初始化失败: ${(error as Error).message}`
+    });
+  }
+});
 
 // 健康检查接口
 server.get('/health', async () => {
