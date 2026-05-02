@@ -21,3 +21,12 @@ usage: /story-seed [你的故事创意]
 ```
 
 我会帮你生成结构化的故事核心卡片，并且自动保存到`story-seed.md`文件中。
+
+### 🔧 重要要求
+生成完故事核心设定并写入`story-seed.md`文件后，你必须调用`saveStorySeed`工具将内容保存到数据库，参数如下：
+- coreIdea: 核心创意内容
+- worldSetting: 世界观设定内容（可选，没有则不传）
+- coreCharacters: 核心人物内容（可选，没有则不传）
+- sellingPoints: 核心卖点内容（可选，没有则不传）
+- setAsActive: true
+
