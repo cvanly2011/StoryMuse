@@ -32,8 +32,9 @@ server.addHook('preHandler', async (request, reply) => {
     return;
   }
   try {
-    ensureProjectInitialized();
+    await ensureProjectInitialized();
   } catch (error) {
+    console.error("全局初始化钩子失败:", error);
     return reply.status(500).send({
       success: false,
       message: `项目初始化失败: ${(error as Error).message}`
@@ -62,7 +63,7 @@ async function startServer() {
 
     // 初始化Git服务
     try {
-      gitService.init(process.cwd());
+      await gitService.init(process.cwd());
       console.log('Git服务初始化成功');
     } catch (error) {
       console.log('Git服务初始化失败，分支功能将不可用:', (error as Error).message);

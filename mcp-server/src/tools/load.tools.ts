@@ -94,7 +94,7 @@ export async function rebuildDatabase(request: FastifyRequest<{
     // 4. 初始化Git服务（如果还没有初始化）
     try {
       if (!gitService.isInitialized()) {
-        gitService.init(projectRoot);
+        await gitService.init(projectRoot);
         console.log('Git服务初始化成功');
       }
     } catch (error) {

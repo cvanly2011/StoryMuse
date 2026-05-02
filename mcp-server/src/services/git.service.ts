@@ -41,7 +41,7 @@ class GitService {
    * 初始化Git服务
    * @param projectRoot 项目根目录
    */
-  public init(projectRoot: string): void {
+  public async init(projectRoot: string): Promise<void> {
     this.projectRoot = projectRoot;
     this.dbPath = path.join(projectRoot, '.claude', 'storymuse.db');
 
@@ -54,7 +54,7 @@ class GitService {
     this.currentBranch = this.getCurrentBranch();
 
     // 确保当前分支对应的数据库存在
-    this.ensureBranchDatabaseExists();
+    await this.ensureBranchDatabaseExists();
 
     this.initialized = true;
     console.log('[Git] 服务初始化完成，当前分支:', this.currentBranch);
@@ -194,7 +194,7 @@ storymuse-*.db
    * @param branchName 新分支名
    * @param sourceBranch 源分支，默认当前分支
    */
-  public createBranch(branchName: string, sourceBranch?: string): void {
+  public async createBranch(branchName: string, sourceBranch?: string): Promise<void> {
     try {
       const source = sourceBranch || this.currentBranch;
 
@@ -224,11 +224,11 @@ storymuse-*.db
         fs.copyFileSync(sourceDbPath, targetDbPath);
       } else {
         // 如果源分支数据库不存在，初始化新数据库
-        initDatabase();
+        await initDatabase();
       }
 
       // 切换到新分支的数据库
-      this.switchBranchDatabase(branchName);
+      await this.switchBranchDatabase(branchName);
 
       console.log(`[Git] 分支 ${branchName} 创建成功`);
     } catch (error) {
@@ -282,7 +282,7 @@ storymuse-*.db
       this.currentBranch = branchName;
 
       // 切换到对应分支的数据库
-      this.switchBranchDatabase(branchName);
+      await this.switchBranchDatabase(branchName);
 
       // 重新启动文件监控
       const configPath = path.join(this.projectRoot, '.story-muse.config.json');
@@ -495,7 +495,7 @@ storymuse-*.db
   /**
    * 确保当前分支的数据库存在
    */
-  private ensureBranchDatabaseExists(): void {
+  private async ensureBranchDatabaseExists(): Promise<void> {
     const branchDbPath = this.getBranchDbPath(this.currentBranch);
     if (!fs.existsSync(branchDbPath)) {
       // 如果当前分支没有数据库，尝试从主分支复制，或者创建新的
@@ -508,7 +508,7 @@ storymuse-*.db
         fs.copyFileSync(masterDbPath, branchDbPath);
       } else {
         // 初始化新数据库
-        initDatabase();
+        await initDatabase();
       }
     }
 
@@ -519,7 +519,7 @@ storymuse-*.db
   /**
    * 切换分支数据库
    */
-  private switchBranchDatabase(branchName: string): void {
+  private async switchBranchDatabase(branchName: string): Promise<void> {
     const branchDbPath = this.getBranchDbPath(branchName);
     if (!fs.existsSync(branchDbPath)) {
       throw new Error(`分支 ${branchName} 的数据库不存在`);
@@ -529,8 +529,8 @@ storymuse-*.db
     this.updateCurrentDbSymlink(branchDbPath);
 
     // 重新初始化数据库连接
-    rebuildDb();
-    initDatabase();
+    await rebuildDb();
+    await initDatabase();
   }
 
   /**
@@ -559,7 +559,7 @@ export const gitService = new GitService();
 // 兼容旧接口
 export async function initGitService(projectRoot: string = process.cwd()) {
   try {
-    gitService.init(projectRoot);
+    await gitService.init(projectRoot);
     return true;
   } catch (error) {
     console.log('Git服务初始化失败，分支适配功能已禁用:', error);
