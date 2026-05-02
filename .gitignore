@@ -17,3 +17,7 @@ test-backups/
 coverage/
 *.test.ts.snap
 *.bak
+
+# 分支数据库文件
+storymuse-*.db
+**/storymuse-*.db

@@ -12,6 +12,13 @@ export interface SyncResult {
   filePath: string;
   changes?: string[];
   error?: string;
+  conflict?: boolean;
+  conflictMessage?: string;
+}
+
+export interface SyncOptions {
+  // 冲突处理策略：overwrite(覆盖数据库，默认)、skip(跳过冲突文件)、error(返回错误)
+  conflictStrategy?: 'overwrite' | 'skip' | 'error';
 }
 
 /**
@@ -82,7 +89,7 @@ export class FileSyncService {
       switch (changeType) {
         case 'add':
         case 'change':
-          await this.syncFile(fullPath);
+          await this.syncFile(fullPath, { conflictStrategy: 'overwrite' });
           break;
         case 'unlink':
           await this.handleFileDelete(fullPath);
@@ -98,11 +105,86 @@ export class FileSyncService {
   /**
    * 同步单个文件到数据库
    */
-  public async syncFile(filePath: string): Promise<SyncResult> {
+  public async syncFile(filePath: string, options: SyncOptions = {}): Promise<SyncResult> {
+    const { conflictStrategy = 'overwrite' } = options;
     const fileName = path.basename(filePath);
-    const content = fs.readFileSync(filePath, 'utf8');
 
     try {
+      const content = fs.readFileSync(filePath, 'utf8');
+      const stats = fs.statSync(filePath);
+      const fileMtime = stats.mtime;
+      let dbLastUpdated: Date | null = null;
+      let hasConflict = false;
+
+      // 冲突检测
+      if (this.novelId) {
+        try {
+          if (fileName === 'story-seed.md') {
+            const latestSeed = storySeedDAO.getLatest(this.novelId);
+            if (latestSeed) {
+              dbLastUpdated = new Date(latestSeed.updated_at);
+            }
+          } else if (fileName === 'outline.md') {
+            const maxUpdated = outlineNodeDAO.getMaxUpdatedAt(this.novelId);
+            if (maxUpdated) {
+              dbLastUpdated = new Date(maxUpdated);
+            }
+          } else if (fileName === 'characters.md') {
+            const maxUpdated = characterDAO.getMaxUpdatedAt(this.novelId);
+            if (maxUpdated) {
+              dbLastUpdated = new Date(maxUpdated);
+            }
+          } else if (fileName.startsWith('第') && fileName.endsWith('章.md') || fileName.match(/^\d+\.md$/)) {
+            const chapterMatch = fileName.match(/第(\d+)章/) || fileName.match(/^(\d+)\.md$/);
+            if (chapterMatch) {
+              const chapterNumber = parseInt(chapterMatch[1], 10);
+              const allChapters = outlineNodeDAO.findByLevel(this.novelId, 3);
+              const chapterNode = allChapters.find(c => c.order === chapterNumber);
+              if (chapterNode) {
+                const latestChapter = chapterDAO.getLatestByOutlineNodeId(chapterNode.id);
+                if (latestChapter) {
+                  dbLastUpdated = new Date(latestChapter.updated_at);
+                }
+              }
+            }
+          }
+
+          // 检查数据库是否比文件新
+          if (dbLastUpdated && dbLastUpdated > fileMtime) {
+            hasConflict = true;
+          }
+        } catch (error) {
+          // 冲突检测失败时忽略（如首次同步没有数据）
+          hasConflict = false;
+        }
+      }
+
+      // 处理冲突
+      if (hasConflict) {
+        switch (conflictStrategy) {
+          case 'skip':
+            return {
+              success: true,
+              filePath,
+              changes: ['跳过同步：数据库内容比文件新'],
+              conflict: true,
+              conflictMessage: '数据库内容更新于文件，使用 conflictStrategy: "overwrite" 覆盖数据库'
+            };
+          case 'error':
+            return {
+              success: false,
+              filePath,
+              error: '同步冲突：数据库内容比文件新',
+              conflict: true,
+              conflictMessage: '数据库内容更新于文件，使用 conflictStrategy: "overwrite" 覆盖或 "skip" 跳过'
+            };
+          case 'overwrite':
+          default:
+            // 继续同步
+            break;
+        }
+      }
+
       // 根据文件名判断文件类型
       if (fileName === 'story-seed.md') {
         return await this.syncStorySeed(filePath, content);
@@ -471,7 +553,7 @@ export class FileSyncService {
   /**
    * 全量同步所有文件
    */
-  public async syncAll(): Promise<SyncResult[]> {
+  public async syncAll(options: SyncOptions = {}): Promise<SyncResult[]> {
     if (!this.projectRoot || !this.novelId) {
       throw new Error('项目目录或小说ID未设置');
     }
@@ -483,7 +565,7 @@ export class FileSyncService {
     for (const file of coreFiles) {
       const fullPath = path.join(this.projectRoot, file);
       if (fs.existsSync(fullPath)) {
-        const result = await this.syncFile(fullPath);
+        const result = await this.syncFile(fullPath, options);
         results.push(result);
       }
     }
@@ -501,7 +583,7 @@ export class FileSyncService {
 
       for (const file of chapterFiles) {
         const fullPath = path.join(chaptersDir, file);
-        const result = await this.syncFile(fullPath);
+        const result = await this.syncFile(fullPath, options);
         results.push(result);
       }
     }

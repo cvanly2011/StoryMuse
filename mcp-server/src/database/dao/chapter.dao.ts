@@ -13,6 +13,7 @@ export interface Chapter {
   created_by?: string;
   is_current: boolean;
   created_at: string;
+  updated_at: string;
 }
 
 class ChapterDAO extends BaseDAO<Chapter> {
@@ -26,7 +27,7 @@ class ChapterDAO extends BaseDAO<Chapter> {
 
   // 获取大纲节点的所有版本章节，按版本号降序排列
   public findAllByOutlineNodeId(outlineNodeId: number): Chapter[] {
-    const sql = `SELECT * FROM ${this.tableName} WHERE outline_node_id = ? ORDER BY version DESC`;
+    const sql = `SELECT * FROM "${this.tableName}" WHERE outline_node_id = ? ORDER BY version DESC`;
     return this.getDb().prepare(sql).all(outlineNodeId) as Chapter[];
   }
 
@@ -37,21 +38,34 @@ class ChapterDAO extends BaseDAO<Chapter> {
 
   // 获取大纲节点的最新版本号
   public getLatestVersion(outlineNodeId: number): number {
-    const sql = `SELECT MAX(version) as max_version FROM ${this.tableName} WHERE outline_node_id = ?`;
+    const sql = `SELECT MAX(version) as max_version FROM "${this.tableName}" WHERE outline_node_id = ?`;
     const result = this.getDb().prepare(sql).get(outlineNodeId) as { max_version: number | null };
     return result.max_version || 0;
   }
 
+  // 获取大纲节点的最新版本章节
+  public getLatestByOutlineNodeId(outlineNodeId: number): Chapter | null {
+    const stmt = this.getDb().prepare(`
+      SELECT * FROM "${this.tableName}"
+      WHERE "outline_node_id" = ?
+      ORDER BY "version" DESC
+      LIMIT 1
+    `);
+    return stmt.get(outlineNodeId) as Chapter || null;
+  }
+
   // 创建新的章节版本，并自动设为当前版本
-  public createVersion(params: Omit<Chapter, 'id' | 'created_at' | 'is_current'>): Chapter {
+  public createVersion(params: Omit<Chapter, 'id' | 'created_at' | 'updated_at' | 'is_current'>): Chapter {
     return this.transaction(() => {
       // 先将所有版本设置为非当前
       this.updateBy({ outline_node_id: params.outline_node_id }, { is_current: false });
       // 创建新版本并设为当前
+      const now = new Date().toISOString();
       const id = this.insert({
         ...params,
         is_current: true,
-        created_at: new Date().toISOString()
+        created_at: now,
+        updated_at: now
       });
       // 返回创建的章节
       const chapter = this.findById(id);
@@ -75,8 +89,8 @@ class ChapterDAO extends BaseDAO<Chapter> {
   // 获取小说的所有已完成章节
   public findCompletedByNovelId(novelId: number): Chapter[] {
     const sql = `
-      SELECT c.* FROM ${this.tableName} c
-      JOIN outline_nodes o ON c.outline_node_id = o.id
+      SELECT c.* FROM "${this.tableName}" c
+      JOIN "outline_nodes" o ON c.outline_node_id = o.id
       WHERE o.novel_id = ? AND c.is_current = true AND o.status = 'completed'
       ORDER BY o.path
     `;
@@ -87,8 +101,8 @@ class ChapterDAO extends BaseDAO<Chapter> {
   public getCompletedChapterIds(novelId: number): number[] {
     const sql = `
       SELECT o.id
-      FROM outline_nodes o
-      JOIN chapters c ON o.id = c.outline_node_id
+      FROM "outline_nodes" o
+      JOIN "${this.tableName}" c ON o.id = c.outline_node_id
       WHERE o.novel_id = ? AND o.status = 'completed' AND c.is_current = 1
       ORDER BY o.path
     `;

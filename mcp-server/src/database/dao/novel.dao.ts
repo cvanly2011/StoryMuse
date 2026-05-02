@@ -57,31 +57,52 @@ class NovelDAO extends BaseDAO<Novel> {
 
   // 更新小说
   public update(id: number, updates: Partial<Novel>): number {
-    return super.update(id, {
-      ...updates,
-      updatedAt: new Date().toISOString()
+    // 映射camelCase到snake_case
+    const dbUpdates: any = {};
+    Object.keys(updates).forEach(key => {
+      switch (key) {
+        case 'targetPlatform':
+          dbUpdates.target_platform = updates[key];
+          break;
+        case 'targetAudience':
+          dbUpdates.target_audience = updates[key];
+          break;
+        case 'coreConflict':
+          dbUpdates.core_conflict = updates[key];
+          break;
+        case 'wordCountTarget':
+          dbUpdates.word_count_target = updates[key];
+          break;
+        default:
+          dbUpdates[key] = updates[key];
+      }
     });
+
+    // 添加更新时间
+    dbUpdates.updated_at = new Date().toISOString();
+
+    return super.update(id, dbUpdates);
   }
 
   // 获取小说总字数
   public getTotalWordCount(novelId: number): number {
     const stmt = this.getDb().prepare(`
       SELECT SUM(c.word_count) as total
-      FROM chapters c
-      JOIN outline_nodes o ON c.outline_node_id = o.id
+      FROM "chapters" c
+      JOIN "outline_nodes" o ON c.outline_node_id = o.id
       WHERE o.novel_id = ? AND c.is_current = 1
     `);
-    const result = stmt.get(novelId) as { total: number | null };
-    return result.total || 0;
+    const result = stmt.get(novelId) as { total: number | bigint | null };
+    return Number(result.total) || 0;
   }
 
   // 获取小说完成进度
   public getProgress(novelId: number): number {
-    const totalStmt = this.getDb().prepare('SELECT COUNT(*) as total FROM outline_nodes WHERE novel_id = ? AND level = 3');
-    const completedStmt = this.getDb().prepare('SELECT COUNT(*) as completed FROM outline_nodes WHERE novel_id = ? AND level = 3 AND status = "completed"');
+    const totalStmt = this.getDb().prepare('SELECT COUNT(*) as total FROM "outline_nodes" WHERE novel_id = ? AND level = 3');
+    const completedStmt = this.getDb().prepare('SELECT COUNT(*) as completed FROM "outline_nodes" WHERE novel_id = ? AND level = 3 AND status = "completed"');
 
-    const total = (totalStmt.get(novelId) as { total: number }).total;
-    const completed = (completedStmt.get(novelId) as { completed: number }).completed;
+    const total = Number((totalStmt.get(novelId) as { total: number | bigint }).total);
+    const completed = Number((completedStmt.get(novelId) as { completed: number | bigint }).completed);
 
     return total > 0 ? Math.round((completed / total) * 100) : 0;
   }

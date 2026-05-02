@@ -1,8 +1,11 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import fs from 'fs';
 import path from 'path';
-import { rebuildDatabase as rebuildDb } from '../database';
+import { rebuildDatabase as rebuildDb, initDatabase } from '../database';
 import { detectModifiedFiles as detectModified } from '../services/file.service';
+import { fileSyncService } from '../services/file-sync.service';
+import { novelDAO } from '../database/dao/novel.dao';
+import { gitService } from '../services/git.service';
 
 // 加载文件内容到数据库
 export async function loadFileContent(request: FastifyRequest<{
@@ -60,12 +63,72 @@ export async function detectModifiedFiles(request: FastifyRequest, reply: Fastif
 }
 
 // 重建数据库
-export async function rebuildDatabase(request: FastifyRequest, reply: FastifyReply) {
+export async function rebuildDatabase(request: FastifyRequest<{
+  Querystring?: { conflictStrategy?: 'overwrite' | 'skip' | 'error' }
+}>, reply: FastifyReply) {
   try {
+    const projectRoot = process.cwd();
+    const configPath = path.join(projectRoot, '.story-muse.config.json');
+
+    // 1. 检查配置文件是否存在
+    if (!fs.existsSync(configPath)) {
+      return reply.status(400).send({
+        success: false,
+        message: '当前目录不是StoryMuse项目，缺少.story-muse.config.json配置文件'
+      });
+    }
+
+    // 2. 读取配置文件
+    const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+    if (!config.novelId || !config.novelName) {
+      return reply.status(400).send({
+        success: false,
+        message: '配置文件格式不正确，缺少novelId或novelName'
+      });
+    }
+
+    // 3. 重建数据库
     await rebuildDb();
+    await initDatabase();
+
+    // 4. 初始化Git服务（如果还没有初始化）
+    try {
+      if (!gitService.isInitialized()) {
+        gitService.init(projectRoot);
+        console.log('Git服务初始化成功');
+      }
+    } catch (error) {
+      console.log('Git服务初始化失败，分支功能将不可用:', (error as Error).message);
+    }
+
+    // 5. 重建小说基本信息
+    const novelId = novelDAO.create({
+      name: config.novelName,
+      description: config.description || '',
+      genre: config.genre,
+      targetPlatform: config.targetPlatform,
+      wordCountTarget: config.wordCountTarget
+    }).id;
+
+    // 5. 初始化文件同步服务
+    fileSyncService.startWatching(projectRoot, novelId);
+
+    // 6. 扫描并同步所有Markdown文件
+    const conflictStrategy = request.query?.conflictStrategy || 'overwrite';
+    const syncResults = await fileSyncService.syncAll({ conflictStrategy });
+
+    // 统计结果
+    const successCount = syncResults.filter(r => r.success).length;
+    const errorCount = syncResults.filter(r => !r.success).length;
+
     return reply.send({
       success: true,
-      message: '数据库已成功重建，所有内容已从工作区文件恢复'
+      message: `数据库已成功重建，成功同步${successCount}个文件，失败${errorCount}个`,
+      data: {
+        syncResults,
+        successCount,
+        errorCount
+      }
     });
   } catch (error: any) {
     return reply.status(500).send({

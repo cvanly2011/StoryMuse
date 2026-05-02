@@ -27,7 +27,7 @@ class CharacterDAO extends BaseDAO<Character> {
 
   // 获取小说的所有人物
   public findAllByNovelId(novelId: number, includeArchived: boolean = false): Character[] {
-    let sql = `SELECT * FROM ${this.tableName} WHERE novel_id = ?`;
+    let sql = `SELECT * FROM "${this.tableName}" WHERE novel_id = ?`;
     const params: any[] = [novelId];
 
     if (!includeArchived) {
@@ -40,13 +40,13 @@ class CharacterDAO extends BaseDAO<Character> {
 
   // 按角色类型筛选人物
   public findByRole(novelId: number, role: string): Character[] {
-    const sql = `SELECT * FROM ${this.tableName} WHERE novel_id = ? AND role = ? AND is_archived = false ORDER BY name`;
+    const sql = `SELECT * FROM "${this.tableName}" WHERE novel_id = ? AND role = ? AND is_archived = false ORDER BY name`;
     return this.getDb().prepare(sql).all(novelId, role) as Character[];
   }
 
   // 根据姓名查找人物
   public findByName(novelId: number, name: string): Character | undefined {
-    const sql = `SELECT * FROM ${this.tableName} WHERE novel_id = ? AND (name = ? OR alias = ?) AND is_archived = false LIMIT 1`;
+    const sql = `SELECT * FROM "${this.tableName}" WHERE novel_id = ? AND (name = ? OR alias = ?) AND is_archived = false LIMIT 1`;
     return this.getDb().prepare(sql).get(novelId, name, name) as Character | undefined;
   }
 
@@ -64,6 +64,15 @@ class CharacterDAO extends BaseDAO<Character> {
   // 更新人物的更新时间
   public updateUpdatedAt(id: number): number {
     return this.update(id, { updated_at: new Date().toISOString() } as Partial<Character>);
+  }
+
+  // 获取小说人物的最大更新时间
+  public getMaxUpdatedAt(novelId: number): string | null {
+    const stmt = this.getDb().prepare(`
+      SELECT MAX("updated_at") as max_updated FROM "${this.tableName}" WHERE "novel_id" = ? AND "is_archived" = 0
+    `);
+    const result = stmt.get(novelId) as { max_updated: string | null };
+    return result.max_updated || null;
   }
 }
 

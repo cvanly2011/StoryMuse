@@ -164,11 +164,30 @@ export async function rebuildDatabase() {
     db = null;
   }
 
+  // 获取实际的数据库文件路径（处理软链接）
+  let actualDbPath = DB_PATH;
+  try {
+    if (fs.lstatSync(DB_PATH).isSymbolicLink()) {
+      actualDbPath = fs.readlinkSync(DB_PATH);
+      // 如果是相对路径，转换为绝对路径
+      if (!path.isAbsolute(actualDbPath)) {
+        actualDbPath = path.join(path.dirname(DB_PATH), actualDbPath);
+      }
+    }
+  } catch (error) {
+    // 不是软链接或者不存在，使用默认路径
+  }
+
   // 备份当前数据库
-  if (fs.existsSync(DB_PATH)) {
-    const backupPath = `${DB_PATH}.rebuild.${Date.now()}.bak`;
-    fs.copyFileSync(DB_PATH, backupPath);
+  if (fs.existsSync(actualDbPath)) {
+    const backupPath = `${actualDbPath}.rebuild.${Date.now()}.bak`;
+    fs.copyFileSync(actualDbPath, backupPath);
     console.log(`💾 重建前备份已保存到: ${backupPath}`);
+    fs.unlinkSync(actualDbPath);
+  }
+
+  // 如果是软链接，也删除它
+  if (fs.existsSync(DB_PATH) && fs.lstatSync(DB_PATH).isSymbolicLink()) {
     fs.unlinkSync(DB_PATH);
   }
 

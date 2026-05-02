@@ -2,6 +2,9 @@ import fastify from 'fastify';
 import cors from '@fastify/cors';
 import { initDatabase } from './database';
 import { registerTools } from './tools';
+import { errorHandler } from './middleware/error-handler.middleware';
+import { responseTransformHook } from './middleware/response-transform.middleware';
+import { gitService } from './services/git.service';
 
 const server = fastify({
   logger: {
@@ -14,6 +17,12 @@ server.register(cors, {
   origin: true, // 允许所有来源
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
 });
+
+// 注册错误处理中间件
+server.setErrorHandler(errorHandler);
+
+// 注册响应转换钩子（snake_case → camelCase）
+server.addHook('onSend', responseTransformHook);
 
 // 健康检查接口
 server.get('/health', async () => {
@@ -33,6 +42,14 @@ async function startServer() {
     // 初始化数据库
     await initDatabase();
     console.log('数据库初始化成功');
+
+    // 初始化Git服务
+    try {
+      gitService.init(process.cwd());
+      console.log('Git服务初始化成功');
+    } catch (error) {
+      console.log('Git服务初始化失败，分支功能将不可用:', (error as Error).message);
+    }
 
     // 启动服务
     const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 20000;

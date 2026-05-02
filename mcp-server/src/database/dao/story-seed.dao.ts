@@ -10,6 +10,7 @@ export interface StorySeed {
   selling_points?: string;
   is_active: boolean;
   created_at: string;
+  updated_at: string;
 }
 
 class StorySeedDAO extends BaseDAO<StorySeed> {
@@ -23,15 +24,26 @@ class StorySeedDAO extends BaseDAO<StorySeed> {
 
   // 获取小说的所有版本故事种子，按版本号降序排列
   public findAllByNovelId(novelId: number): StorySeed[] {
-    const sql = `SELECT * FROM ${this.tableName} WHERE novel_id = ? ORDER BY version DESC`;
+    const sql = `SELECT * FROM "${this.tableName}" WHERE novel_id = ? ORDER BY version DESC`;
     return this.getDb().prepare(sql).all(novelId) as StorySeed[];
   }
 
   // 获取小说的最新版本号
   public getLatestVersion(novelId: number): number {
-    const sql = `SELECT MAX(version) as max_version FROM ${this.tableName} WHERE novel_id = ?`;
+    const sql = `SELECT MAX(version) as max_version FROM "${this.tableName}" WHERE novel_id = ?`;
     const result = this.getDb().prepare(sql).get(novelId) as { max_version: number | null };
     return result.max_version || 0;
+  }
+
+  // 获取小说的最新版本故事种子
+  public getLatest(novelId: number): StorySeed | null {
+    const stmt = this.getDb().prepare(`
+      SELECT * FROM "${this.tableName}"
+      WHERE novel_id = ?
+      ORDER BY version DESC
+      LIMIT 1
+    `);
+    return stmt.get(novelId) as StorySeed || null;
   }
 
   // 将指定版本设置为激活版本，其他版本设置为非激活
