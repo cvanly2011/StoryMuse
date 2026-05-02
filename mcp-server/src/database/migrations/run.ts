@@ -49,7 +49,7 @@ for (const file of migrationFiles) {
   const version = parseInt(file.split('-')[0]);
   if (appliedVersions.has(version)) continue;
 
-  console.log(`Applying migration: ${file}`);
+  console.error(`Applying migration: ${file}`);
   const migration = require(path.join(migrationDir, file)).default;
 
   db.transaction(() => {
@@ -57,8 +57,8 @@ for (const file of migrationFiles) {
     db.prepare('INSERT INTO migrations (version, name) VALUES (?, ?)').run(version, file);
   })();
 
-  console.log(`✅ Migration ${file} applied successfully`);
+  console.error(`✅ Migration ${file} applied successfully`);
 }
 
-console.log('All migrations completed successfully');
+console.error('All migrations completed successfully');
 db.close();

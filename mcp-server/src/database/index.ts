@@ -10,10 +10,10 @@ if (!fs.existsSync(migrationDir)) {
   // 如果在dist目录下找不到，尝试在src目录下找（开发环境）
   migrationDir = path.join(__dirname, '..', '..', 'src', 'database', 'migrations');
 }
-console.log(`使用迁移目录: ${migrationDir}`);
-console.log(`迁移目录存在: ${fs.existsSync(migrationDir)}`);
+console.error(`使用迁移目录: ${migrationDir}`);
+console.error(`迁移目录存在: ${fs.existsSync(migrationDir)}`);
 if (fs.existsSync(migrationDir)) {
-  console.log(`迁移文件: ${fs.readdirSync(migrationDir).join(', ')}`);
+  console.error(`迁移文件: ${fs.readdirSync(migrationDir).join(', ')}`);
 }
 
 let db: Database.Database | null = null;
@@ -69,7 +69,7 @@ function runMigrations() {
       db!.prepare('INSERT INTO migrations (version, name) VALUES (?, ?)').run(version, file);
     })();
 
-    console.log(`✅ Applied migration: ${file}`);
+    console.error(`✅ Applied migration: ${file}`);
   }
 }
 
@@ -128,7 +128,7 @@ export function backupDatabase() {
 
   db.backup(backupPath)
     .then(() => {
-      console.log(`✅ 数据库备份完成: ${backupPath}`);
+      console.error(`✅ 数据库备份完成: ${backupPath}`);
       // 清理旧备份
       cleanupOldBackups();
     })
@@ -160,7 +160,7 @@ function cleanupOldBackups() {
     filesToDelete.forEach(file => {
       fs.unlinkSync(path.join(BACKUP_DIR, file.name));
     });
-    console.log(`🧹 清理了 ${filesToDelete.length} 个旧备份`);
+    console.error(`🧹 清理了 ${filesToDelete.length} 个旧备份`);
   }
 }
 
@@ -191,7 +191,7 @@ export async function rebuildDatabase() {
   if (fs.existsSync(actualDbPath)) {
     const backupPath = `${actualDbPath}.rebuild.${Date.now()}.bak`;
     fs.copyFileSync(actualDbPath, backupPath);
-    console.log(`💾 重建前备份已保存到: ${backupPath}`);
+    console.error(`💾 重建前备份已保存到: ${backupPath}`);
     fs.unlinkSync(actualDbPath);
   }
 
@@ -202,5 +202,5 @@ export async function rebuildDatabase() {
 
   // 重新初始化
   await initDatabase();
-  console.log('✅ 数据库重建完成');
+  console.error('✅ 数据库重建完成');
 }
