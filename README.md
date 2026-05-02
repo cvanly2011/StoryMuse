@@ -64,56 +64,85 @@ No proprietary formats, no vendor lock-in—all content is plain text that you f
 ## 🏗️ Technical Architecture
 StoryMuse uses a modular, layered architecture designed for performance and extensibility, following the same design patterns as professional developer tools:
 
-```mermaid
-graph TD
-    %% Client Layer
-    A[Client Layer] -->|MCP Protocol Calls| B[Skill Workflow Layer]
-    A1[Claude Code Editor] --> A
-    A2[Other MCP Compatible Clients] --> A
-    A3[IDE Plugins/Third-party Tools] --> A
-
-    %% Skill Workflow Layer
-    B -->|Call MCP Tools| C[MCP Service Layer]
-    B1[story-seed Idea Refinement] --> B
-    B2[story-skeleton Outline Generation] --> B
-    B3[story-characters Character Design] --> B
-    B4[story-write Writing Assistance] --> B
-    B5[story-check Quality Review] --> B
-    B6[story-map Global Visualization] --> B
-
-    %% MCP Service Layer
-    C -->|Read/Write| D[Data Storage Layer]
-    C -->|Optional Call| E[External AI LLM APIs]
-    C1[Protocol Adapter<br>Standard MCP protocol parsing/response] --> C
-    C2[Middleware Layer<br>Parameter validation/response transformation/error handling] --> C
-    C3[Toolkit Layer<br>51 professional writing tools implementation] --> C
-    C4[Core Service Layer<br>Quality check/context snapshot/file sync/Git integration] --> C
-
-    %% Data Storage Layer
-    D1[SQLite Database<br>Novel metadata/characters/outline/foreshadowing] --> D
-    D2[Local File System<br>Standard Markdown format for all creative content] --> D
-    D3[Git Repository<br>Native version control/branch management/change tracking] --> D
-
-    %% Styling
-    classDef client fill:#e1f5fe,stroke:#01579b,stroke-width:2px
-    classDef skill fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
-    classDef mcp fill:#fff3e0,stroke:#ef6c00,stroke-width:2px
-    classDef data fill:#fce4ec,stroke:#ad1457,stroke-width:2px
-    classDef external fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,stroke-dasharray: 5 5
-
-    class A,A1,A2,A3 client
-    class B,B1,B2,B3,B4,B5,B6 skill
-    class C,C1,C2,C3,C4 mcp
-    class D,D1,D2,D3 data
-    class E external
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│  Client Access Layer                                                     │
+├─────────────────────────────────────────────────────────────────────────┤
+│  • Claude Code Editor          • Other MCP-compatible AI Assistants     │
+│  • IDE Plugins/Third-party Tools • Custom Client Integrations           │
+└───────────────────────────────────┬─────────────────────────────────────┘
+                                    │ MCP Standard Protocol Calls
+┌───────────────────────────────────▼─────────────────────────────────────┐
+│  Skill Workflow Layer (Human-readable Creative Process Definitions)     │
+├─────────────────────────────────────────────────────────────────────────┤
+│  • story-seed Idea Refinement   • story-skeleton Outline Generation     │
+│  • story-characters Character Design • story-write Writing Assistance   │
+│  • story-check Quality Review   • story-map Global Visualization        │
+│  • Extensible Custom Workflows                                           │
+└───────────────────────────────────┬─────────────────────────────────────┘
+                                    │ Call MCP Tool Interfaces
+┌───────────────────────────────────▼─────────────────────────────────────┐
+│  MCP Service Core Layer (Local Execution, No Network Dependency)        │
+├─────────────────────────────────────────────────────────────────────────┤
+│  ┌─────────────────────────────────────────────────────────────────┐  │
+│  │  Protocol Adapter Layer                                        │  │
+│  │  • MCP Request Parsing           • Standard Response Formatting │  │
+│  │  • Unified Error Handling        • Protocol Version Compatibility│  │
+│  └─────────────────────────────────────────────────────────────────┘  │
+│  ┌─────────────────────────────────────────────────────────────────┐  │
+│  │  Middleware Layer                                                │  │
+│  │  • Parameter Validation          • Automatic camelCase Conversion│  │
+│  │  • Permission Control            • Request Logging               │  │
+│  └─────────────────────────────────────────────────────────────────┘  │
+│  ┌─────────────────────────────────────────────────────────────────┐  │
+│  │  Toolkit Layer (51 Professional Writing Tools)                  │  │
+│  │  • Content Management: Novel/Outline/Character/Chapter/Foreshadowing CRUD │
+│  │  • Writing Assistance: Context Snapshots/Multi-version Management/Rollback │
+│  │  • Quality Checking: Character Consistency/Foreshadowing Recovery/Plot Logic/Platform Compliance │
+│  │  • System Tools: File Sync/Database Rebuild/Git Integration/Project Initialization │
+│  └─────────────────────────────────────────────────────────────────┘  │
+│  ┌─────────────────────────────────────────────────────────────────┐  │
+│  │  Core Service Layer                                              │  │
+│  │  • Quality Check Engine          • Intelligent Context Snapshot Generation │
+│  │  • Bidirectional File Sync Service • Git Version Management Service │
+│  │  • Token Calculation Service     • Character Relationship Graph Generation │
+│  └─────────────────────────────────────────────────────────────────┘  │
+└───────────────────────────────────┬─────────────────────────────────────┘
+                                    │ Local Read/Write
+┌───────────────────────────────────▼─────────────────────────────────────┐
+│  Data Persistence Layer                                                   │
+├─────────────────────────────────────────────────────────────────────────┤
+│  ┌────────────────────┐  ┌────────────────────┐  ┌────────────────────┐  │
+│  │ SQLite Database    │  │ Local File System  │  │ Git Repository     │  │
+│  │ • Novel Metadata   │  │ • Standard Markdown│  │ • Commit History   │  │
+│  │ • Character Profiles │ •   Format for All Content │ • Branch Management │  │
+│  │ • Outline Structure│  │ • Fully Human Readable│ • Change Diff      │  │
+│  │ • Foreshadowing Points │ • No Vendor Lock-in │ • Multi-version Experimentation │  │
+│  │ • Version Snapshots│  │                    │  │                    │  │
+│  └────────────────────┘  └────────────────────┘  └────────────────────┘  │
+└───────────────────────────────────┬─────────────────────────────────────┘
+                                    │ Optional Calls (Only for Enhanced Features)
+┌───────────────────────────────────▼─────────────────────────────────────┐
+│  Optional External Dependencies                                           │
+├─────────────────────────────────────────────────────────────────────────┤
+│  • AI LLM APIs (Claude/GPT/Tongyi Qianwen, etc., for content generation suggestions) │
+│  * Core functionality works completely offline, no privacy risks        │
+└─────────────────────────────────────────────────────────────────────────┘
 ```
 
-### Architecture Description
-- **Client Layer**: Supports all MCP-compatible AI assistants and editors, no platform lock-in
-- **Skill Workflow Layer**: Human-readable workflow definitions providing out-of-the-box writing guidance, fully extensible
-- **MCP Service Layer**: Core business implementation, providing 51 professional writing tools via standard protocol, all logic executed locally
-- **Data Storage Layer**: Hybrid storage architecture, metadata stored in SQLite, creative content stored as plain-text Markdown, Git provides version management
-- **External Dependencies**: AI LLM calls are completely optional, core functionality works fully offline
+### Detailed Architecture Description
+- **Client Access Layer**: Fully compatible with the Model Context Protocol (MCP) standard, supports all protocol-compliant AI assistants, editors, and third-party tools. No platform lock-in, users can freely choose their creative environment
+- **Skill Workflow Layer**: Human-readable workflow definitions based on Markdown, provide out-of-the-box professional writing process guidance. Custom workflows can be extended without programming, adapting to different types of creative needs
+- **MCP Service Core Layer**: All logic executes 100% locally, no creative content needs to be uploaded to external servers:
+  - Protocol Adapter Layer: Fully follows the MCP protocol standard, implements request parsing, response formatting, unified error handling and other basic capabilities
+  - Middleware Layer: Provides parameter validation, response transformation, logging and other common capabilities to ensure reliability and consistency of interface calls
+  - Toolkit Layer: Implements 51 professional writing tools, covering four categories: content management, writing assistance, quality checking, and system management
+  - Core Service Layer: Encapsulates complex business logic such as quality check engine, context snapshot generation, file synchronization, and Git integration for use by the tool layer
+- **Data Persistence Layer**: Hybrid storage architecture that balances performance, readability, and version management capabilities:
+  - SQLite Database: Optimized with WAL mode, stores structured information such as novel metadata, characters, outlines, and foreshadowing, providing efficient query capabilities
+  - Local File System: All creative content is stored in standard Markdown format, fully human-readable, no proprietary formats, users completely own their creative data
+  - Git Repository: Native support for Git version control, no additional configuration required to achieve professional capabilities such as multi-version management, branch experimentation, and change tracking
+- **Optional External Dependencies**: AI LLM calls are only used for enhanced features such as content generation suggestions. All core writing management functions can be used completely offline, strictly protecting user privacy and security
 
 ### Key Technical Features
 - **WAL-Optimized SQLite**: 10x faster read/write performance for large writing projects
