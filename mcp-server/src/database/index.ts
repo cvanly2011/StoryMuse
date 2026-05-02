@@ -4,9 +4,11 @@ import path from 'path';
 import { DB_PATH, DB_CONFIG, BACKUP_DIR, BACKUP_CONFIG } from '../config/db.config';
 
 // 加载迁移文件，优先使用编译后的dist目录，回退到src目录
-let migrationDir = path.join(process.cwd(), 'dist', 'database', 'migrations');
+// 使用__dirname来定位迁移文件，因为__dirname是当前文件的目录，不受process.cwd()影响
+let migrationDir = path.join(__dirname, 'migrations');
 if (!fs.existsSync(migrationDir)) {
-  migrationDir = path.join(process.cwd(), 'src', 'database', 'migrations');
+  // 如果在dist目录下找不到，尝试在src目录下找（开发环境）
+  migrationDir = path.join(__dirname, '..', '..', 'src', 'database', 'migrations');
 }
 console.log(`使用迁移目录: ${migrationDir}`);
 console.log(`迁移目录存在: ${fs.existsSync(migrationDir)}`);

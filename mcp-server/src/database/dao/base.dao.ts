@@ -56,8 +56,22 @@ export abstract class BaseDAO<T> {
    * 插入新记录
    */
   public insert(data: Partial<T>): number {
-    const keys = Object.keys(data);
-    const values = Object.values(data);
+    // 过滤掉undefined的属性，转换boolean为number
+    const filteredData = Object.entries(data).reduce((acc, [key, value]) => {
+      if (value !== undefined) {
+        // SQLite不支持boolean类型，转换为1/0
+        if (typeof value === 'boolean') {
+          (acc as any)[key] = value ? 1 : 0;
+        } else {
+          (acc as any)[key] = value;
+        }
+      }
+      return acc;
+    }, {} as Partial<T>);
+
+    const keys = Object.keys(filteredData);
+    const values = Object.values(filteredData);
+
     const placeholders = keys.map(() => '?').join(', ');
     // 引用所有列名，避免与SQL关键字冲突（如order）
     const quotedKeys = keys.map(key => `"${key}"`).join(', ');
@@ -71,8 +85,25 @@ export abstract class BaseDAO<T> {
    * 更新记录
    */
   public update(id: number, data: Partial<T>): number {
-    const sets = Object.keys(data).map(key => `"${key}" = ?`).join(', ');
-    const values = [...Object.values(data), id];
+    // 过滤掉undefined的属性，转换boolean为number
+    const filteredData = Object.entries(data).reduce((acc, [key, value]) => {
+      if (value !== undefined) {
+        // SQLite不支持boolean类型，转换为1/0
+        if (typeof value === 'boolean') {
+          (acc as any)[key] = value ? 1 : 0;
+        } else {
+          (acc as any)[key] = value;
+        }
+      }
+      return acc;
+    }, {} as Partial<T>);
+
+    if (Object.keys(filteredData).length === 0) {
+      return 0; // 没有需要更新的字段
+    }
+
+    const sets = Object.keys(filteredData).map(key => `"${key}" = ?`).join(', ');
+    const values = [...Object.values(filteredData), id];
     const sql = `UPDATE ${this.tableName} SET ${sets} WHERE "${this.primaryKey}" = ?`;
 
     const result = this.getDb().prepare(sql).run(...values);
@@ -83,9 +114,31 @@ export abstract class BaseDAO<T> {
    * 根据条件更新
    */
   public updateBy(where: Partial<T>, data: Partial<T>): number {
-    const sets = Object.keys(data).map(key => `"${key}" = ?`).join(', ');
-    const conditions = Object.keys(where).map(key => `"${key}" = ?`).join(' AND ');
-    const values = [...Object.values(data), ...Object.values(where)];
+    // 过滤掉undefined的属性，转换boolean为number
+    const processData = (obj: Partial<T>) => {
+      return Object.entries(obj).reduce((acc, [key, value]) => {
+        if (value !== undefined) {
+          // SQLite不支持boolean类型，转换为1/0
+          if (typeof value === 'boolean') {
+            (acc as any)[key] = value ? 1 : 0;
+          } else {
+            (acc as any)[key] = value;
+          }
+        }
+        return acc;
+      }, {} as Partial<T>);
+    };
+
+    const filteredData = processData(data);
+    const processedWhere = processData(where);
+
+    if (Object.keys(filteredData).length === 0) {
+      return 0; // 没有需要更新的字段
+    }
+
+    const sets = Object.keys(filteredData).map(key => `"${key}" = ?`).join(', ');
+    const conditions = Object.keys(processedWhere).map(key => `"${key}" = ?`).join(' AND ');
+    const values = [...Object.values(filteredData), ...Object.values(processedWhere)];
     const sql = `UPDATE ${this.tableName} SET ${sets} WHERE ${conditions}`;
 
     const result = this.getDb().prepare(sql).run(...values);
