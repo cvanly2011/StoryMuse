@@ -4,8 +4,7 @@
   "version": "1.0.0",
   "description": "StoryMuse 核心服务",
   "command": "node",
-  "args": ["mcp-server/dist/server.js"],
-  "workingDirectory": "{{pluginDir}}",
+  "args": ["{{pluginDir}}/mcp-server/dist/server.js"],
   "tools": [
     {
       "name": "createNovel",
