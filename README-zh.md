@@ -66,30 +66,56 @@ StoryMuse 生成清晰、人类可读、工具无关的项目结构：
 ## 🏗️ 技术架构
 StoryMuse 采用模块化分层架构，专为性能和可扩展性设计，遵循专业开发工具的设计模式：
 
+```mermaid
+graph TD
+    %% 客户端层
+    A[客户端层] -->|MCP 协议调用| B[Skill 工作流层]
+    A1[Claude Code 编辑器] --> A
+    A2[其他 MCP 兼容客户端] --> A
+    A3[IDE 插件/第三方工具] --> A
+
+    %% Skill 工作流层
+    B -->|调用 MCP 工具| C[MCP 服务层]
+    B1[story-seed 创意梳理] --> B
+    B2[story-skeleton 大纲生成] --> B
+    B3[story-characters 人物设计] --> B
+    B4[story-write 写作辅助] --> B
+    B5[story-check 质量审核] --> B
+    B6[story-map 全局可视化] --> B
+
+    %% MCP 服务层
+    C -->|读写| D[数据存储层]
+    C -->|可选调用| E[外部 AI 大模型]
+    C1[协议适配层<br>标准 MCP 协议解析/响应] --> C
+    C2[中间件层<br>参数校验/响应转换/错误处理] --> C
+    C3[工具集层<br>51个专业创作工具实现] --> C
+    C4[核心服务层<br>质量检查/上下文快照/文件同步/Git集成] --> C
+
+    %% 数据存储层
+    D1[SQLite 数据库<br>小说元数据/人物/大纲/伏笔] --> D
+    D2[本地文件系统<br>标准 Markdown 格式存储所有创作内容] --> D
+    D3[Git 仓库<br>原生版本控制/分支管理/变更追踪] --> D
+
+    %% 样式设置
+    classDef client fill:#e1f5fe,stroke:#01579b,stroke-width:2px
+    classDef skill fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
+    classDef mcp fill:#fff3e0,stroke:#ef6c00,stroke-width:2px
+    classDef data fill:#fce4ec,stroke:#ad1457,stroke-width:2px
+    classDef external fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,stroke-dasharray: 5 5
+
+    class A,A1,A2,A3 client
+    class B,B1,B2,B3,B4,B5,B6 skill
+    class C,C1,C2,C3,C4 mcp
+    class D,D1,D2,D3 data
+    class E external
 ```
-┌─────────────────────────────────────────────────┐
-│  Skill 接口层                                   │
-│ （人类可读的工作流定义）                         │
-│  • 创意梳理                                     │
-│  • 大纲生成                                     │
-│  • 人物设计                                     │
-│  • 写作辅助                                     │
-│  • 质量审核                                     │
-├─────────────────────────────────────────────────┤
-│  MCP 服务层                                     │
-│ （标准 MCP 协议 API）                           │
-│  • 所有内容类型的 CRUD 操作                     │
-│  • 智能上下文快照生成                           │
-│  • 基于规则的质量检查引擎                       │
-│  • 双向文件同步                                 │
-├─────────────────────────────────────────────────┤
-│  数据存储层                                     │
-│ （WAL 模式优化的 SQLite）                       │
-│  • 支持 ACID 特性的本地存储                     │
-│  • 自动增量备份                                 │
-│  • 为叙事元数据优化的存储结构                   │
-└─────────────────────────────────────────────────┘
-```
+
+### 架构说明
+- **客户端层**：支持所有兼容MCP协议的AI助手和编辑器，无需绑定特定平台
+- **Skill工作流层**：人类可读的工作流定义，提供开箱即用的创作流程引导，可自由扩展
+- **MCP服务层**：核心业务实现，通过标准协议对外提供51个专业创作工具，所有逻辑本地执行
+- **数据存储层**：混合存储架构，元数据存SQLite，创作内容存纯文本Markdown，Git提供版本管理
+- **外部依赖**：AI大模型调用完全可选，核心功能无需联网即可使用
 
 ### 关键技术特性
 - **WAL 优化的 SQLite**: 大型写作项目读写性能提升 10 倍

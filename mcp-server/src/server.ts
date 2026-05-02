@@ -225,7 +225,7 @@ const tools: Tool[] = [
     }
   },
   {
-    name: 'markForeshadowingPaidOff',
+    name: 'markForeshadowingAsPaid',
     description: '标记伏笔已回收',
     inputSchema: {
       type: 'object',
@@ -238,7 +238,7 @@ const tools: Tool[] = [
     }
   },
   {
-    name: 'listUnpaidForeshadowings',
+    name: 'getOverdueForeshadowings',
     description: '获取未回收伏笔列表',
     inputSchema: {
       type: 'object',
@@ -339,8 +339,206 @@ const tools: Tool[] = [
     inputSchema: { type: 'object', properties: {} }
   },
   {
-    name: 'getGitBranchInfo',
-    description: '获取当前Git分支信息',
+    name: 'listNovels',
+    description: '获取小说列表',
+    inputSchema: { type: 'object', properties: {} }
+  },
+  {
+    name: 'listSeedVersions',
+    description: '获取故事种子版本列表',
+    inputSchema: { type: 'object', properties: {} }
+  },
+  {
+    name: 'deleteOutlineNode',
+    description: '删除大纲节点',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        nodeId: { type: 'number', description: '节点ID' }
+      },
+      required: ['nodeId']
+    }
+  },
+  {
+    name: 'updateNodeStatus',
+    description: '更新节点状态',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        nodeId: { type: 'number', description: '节点ID' },
+        status: { type: 'string', description: '节点状态' }
+      },
+      required: ['nodeId', 'status']
+    }
+  },
+  {
+    name: 'rebuildOutlineFromFile',
+    description: '从文件重建大纲',
+    inputSchema: { type: 'object', properties: {} }
+  },
+  {
+    name: 'getNodesByLevel',
+    description: '获取指定层级的大纲节点',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        level: { type: 'number', description: '层级' }
+      },
+      required: ['level']
+    }
+  },
+  {
+    name: 'addRelationEvolution',
+    description: '添加人物关系演变',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        relationId: { type: 'number', description: '关系ID' },
+        chapterId: { type: 'number', description: '章节ID' },
+        description: { type: 'string', description: '演变描述' }
+      },
+      required: ['relationId', 'chapterId', 'description']
+    }
+  },
+  {
+    name: 'listChapterVersions',
+    description: '获取章节版本列表',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        outlineNodeId: { type: 'number', description: '大纲节点ID' }
+      },
+      required: ['outlineNodeId']
+    }
+  },
+  {
+    name: 'getForeshadowings',
+    description: '获取伏笔列表',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        chapterId: { type: 'number', description: '章节ID，可选' }
+      }
+    }
+  },
+  {
+    name: 'markForeshadowingAsAbandoned',
+    description: '标记伏笔为废弃',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        foreshadowingId: { type: 'number', description: '伏笔ID' },
+        reason: { type: 'string', description: '废弃原因' }
+      },
+      required: ['foreshadowingId', 'reason']
+    }
+  },
+  {
+    name: 'deleteForeshadowing',
+    description: '删除伏笔',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        foreshadowingId: { type: 'number', description: '伏笔ID' }
+      },
+      required: ['foreshadowingId']
+    }
+  },
+  {
+    name: 'getAllSnapshotVersions',
+    description: '获取所有快照版本',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        chapterId: { type: 'number', description: '章节ID，可选' }
+      }
+    }
+  },
+  {
+    name: 'runQualityChecks',
+    description: '运行质量检查',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        chapterId: { type: 'number', description: '章节ID，可选' },
+        checkTypes: { type: 'array', items: { type: 'string' }, description: '检查类型，可选' }
+      }
+    }
+  },
+  {
+    name: 'initGit',
+    description: '初始化Git仓库',
+    inputSchema: { type: 'object', properties: {} }
+  },
+  {
+    name: 'listBranches',
+    description: '获取Git分支列表',
+    inputSchema: { type: 'object', properties: {} }
+  },
+  {
+    name: 'createBranch',
+    description: '创建Git分支',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        branchName: { type: 'string', description: '分支名称' }
+      },
+      required: ['branchName']
+    }
+  },
+  {
+    name: 'switchBranch',
+    description: '切换Git分支',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        branchName: { type: 'string', description: '分支名称' }
+      },
+      required: ['branchName']
+    }
+  },
+  {
+    name: 'deleteBranch',
+    description: '删除Git分支',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        branchName: { type: 'string', description: '分支名称' }
+      },
+      required: ['branchName']
+    }
+  },
+  {
+    name: 'mergeBranch',
+    description: '合并Git分支',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        sourceBranch: { type: 'string', description: '源分支名称' },
+        targetBranch: { type: 'string', description: '目标分支名称' }
+      },
+      required: ['sourceBranch', 'targetBranch']
+    }
+  },
+  {
+    name: 'getGitStatus',
+    description: '获取Git状态',
+    inputSchema: { type: 'object', properties: {} }
+  },
+  {
+    name: 'commitChanges',
+    description: '提交Git更改',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        message: { type: 'string', description: '提交信息' }
+      },
+      required: ['message']
+    }
+  },
+  {
+    name: 'getGitInfo',
+    description: '获取当前Git信息',
     inputSchema: { type: 'object', properties: {} }
   }
 ];
@@ -546,4 +744,10 @@ async function main() {
   }
 }
 
-main();
+// 导出用于测试
+export { startMCPServer, startHTTPServer, initCoreServices, tools };
+
+// 只有在直接运行这个文件的时候才执行main()
+if (require.main === module) {
+  main();
+}

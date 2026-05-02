@@ -64,30 +64,56 @@ No proprietary formats, no vendor lock-in—all content is plain text that you f
 ## 🏗️ Technical Architecture
 StoryMuse uses a modular, layered architecture designed for performance and extensibility, following the same design patterns as professional developer tools:
 
+```mermaid
+graph TD
+    %% Client Layer
+    A[Client Layer] -->|MCP Protocol Calls| B[Skill Workflow Layer]
+    A1[Claude Code Editor] --> A
+    A2[Other MCP Compatible Clients] --> A
+    A3[IDE Plugins/Third-party Tools] --> A
+
+    %% Skill Workflow Layer
+    B -->|Call MCP Tools| C[MCP Service Layer]
+    B1[story-seed Idea Refinement] --> B
+    B2[story-skeleton Outline Generation] --> B
+    B3[story-characters Character Design] --> B
+    B4[story-write Writing Assistance] --> B
+    B5[story-check Quality Review] --> B
+    B6[story-map Global Visualization] --> B
+
+    %% MCP Service Layer
+    C -->|Read/Write| D[Data Storage Layer]
+    C -->|Optional Call| E[External AI LLM APIs]
+    C1[Protocol Adapter<br>Standard MCP protocol parsing/response] --> C
+    C2[Middleware Layer<br>Parameter validation/response transformation/error handling] --> C
+    C3[Toolkit Layer<br>51 professional writing tools implementation] --> C
+    C4[Core Service Layer<br>Quality check/context snapshot/file sync/Git integration] --> C
+
+    %% Data Storage Layer
+    D1[SQLite Database<br>Novel metadata/characters/outline/foreshadowing] --> D
+    D2[Local File System<br>Standard Markdown format for all creative content] --> D
+    D3[Git Repository<br>Native version control/branch management/change tracking] --> D
+
+    %% Styling
+    classDef client fill:#e1f5fe,stroke:#01579b,stroke-width:2px
+    classDef skill fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
+    classDef mcp fill:#fff3e0,stroke:#ef6c00,stroke-width:2px
+    classDef data fill:#fce4ec,stroke:#ad1457,stroke-width:2px
+    classDef external fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,stroke-dasharray: 5 5
+
+    class A,A1,A2,A3 client
+    class B,B1,B2,B3,B4,B5,B6 skill
+    class C,C1,C2,C3,C4 mcp
+    class D,D1,D2,D3 data
+    class E external
 ```
-┌─────────────────────────────────────────────────┐
-│  Skill Interface Layer                          │
-│  (Human-readable workflow definitions)          │
-│  • Idea refinement                              │
-│  • Outline generation                           │
-│  • Character design                             │
-│  • Writing assistance                           │
-│  • Quality review                               │
-├─────────────────────────────────────────────────┤
-│  MCP Service Layer                              │
-│  (Standard MCP protocol API)                    │
-│  • CRUD operations for all content types        │
-│  • Intelligent context snapshot generation      │
-│  • Rule-based quality check engines             │
-│  • Bidirectional file synchronization           │
-├─────────────────────────────────────────────────┤
-│  Data Storage Layer                             │
-│  (SQLite with WAL mode optimization)            │
-│  • ACID-compliant local storage                 │
-│  • Automatic incremental backups                │
-│  • Schema optimized for narrative metadata      │
-└─────────────────────────────────────────────────┘
-```
+
+### Architecture Description
+- **Client Layer**: Supports all MCP-compatible AI assistants and editors, no platform lock-in
+- **Skill Workflow Layer**: Human-readable workflow definitions providing out-of-the-box writing guidance, fully extensible
+- **MCP Service Layer**: Core business implementation, providing 51 professional writing tools via standard protocol, all logic executed locally
+- **Data Storage Layer**: Hybrid storage architecture, metadata stored in SQLite, creative content stored as plain-text Markdown, Git provides version management
+- **External Dependencies**: AI LLM calls are completely optional, core functionality works fully offline
 
 ### Key Technical Features
 - **WAL-Optimized SQLite**: 10x faster read/write performance for large writing projects
