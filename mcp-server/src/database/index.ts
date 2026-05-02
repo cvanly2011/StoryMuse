@@ -1,7 +1,7 @@
 import Database from 'better-sqlite3';
 import fs from 'fs';
 import path from 'path';
-import { DB_PATH, DB_CONFIG, BACKUP_DIR, BACKUP_CONFIG } from '../config/db.config';
+import { getDBPath, DB_CONFIG, getBackupDir, BACKUP_CONFIG } from '../config/db.config';
 
 // 加载迁移文件，优先使用编译后的dist目录，回退到src目录
 // 使用__dirname来定位迁移文件，因为__dirname是当前文件的目录，不受process.cwd()影响
@@ -77,6 +77,9 @@ function runMigrations() {
 export async function initDatabase() {
   if (db) return db;
 
+  const DB_PATH = getDBPath();
+  const BACKUP_DIR = getBackupDir();
+
   ensureDirExists(path.dirname(DB_PATH));
   ensureDirExists(BACKUP_DIR);
 
@@ -119,6 +122,7 @@ export function closeDatabase() {
 export function backupDatabase() {
   if (!db) return;
 
+  const BACKUP_DIR = getBackupDir();
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
   const backupPath = path.join(BACKUP_DIR, `backup-${timestamp}.db`);
 
@@ -142,6 +146,7 @@ function startAutoBackup() {
 
 // 清理旧备份
 function cleanupOldBackups() {
+  const BACKUP_DIR = getBackupDir();
   const files = fs.readdirSync(BACKUP_DIR)
     .filter(file => file.startsWith('backup-') && file.endsWith('.db'))
     .map(file => ({
@@ -165,6 +170,8 @@ export async function rebuildDatabase() {
     db.close();
     db = null;
   }
+
+  const DB_PATH = getDBPath();
 
   // 获取实际的数据库文件路径（处理软链接）
   let actualDbPath = DB_PATH;

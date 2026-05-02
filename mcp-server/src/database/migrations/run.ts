@@ -1,7 +1,10 @@
 import fs from 'fs';
 import path from 'path';
 import Database from 'better-sqlite3';
-import { DB_PATH } from '../../config/db.config';
+import { getDBPath } from '../../config/db.config';
+
+// 获取数据库路径
+const DB_PATH = getDBPath();
 
 // 确保数据库目录存在
 const dbDir = path.dirname(DB_PATH);
